@@ -2,12 +2,32 @@
 <html>
 
 <head>
-    <title>Home - PoltergeistBot</title>
+    <title>Home - <%= bot.user.username %></title>
     <%- include("partials/header.ejs") %>
 </head>
 
 <body>
-    <h1 style="color: white; font-size: 50px;">Coucou <%= bot.user.username %></h1>
+    <h1 style="color: white; font-size: 50px;">Home <%= bot.user.username %></h1>
+    <div class="card" id="recap">
+        <h2 style="font-family: Georgia, serif;"><%= guild.name %></h2>
+        <img src="<%= guild.iconURL() %>" onclick="window.open('<%= guild.iconURL() %>', '_blank').focus()" />
+        <h3>Nickname: <%= memberBot.nickname ? memberBot.nickname : bot.user.username %></h3>
+        <table>
+            <tr>
+                <th colspan="3" style="background-color: #1a97d6; color: white;">Tableau des membres</th>
+            </tr>
+            <tr style="background-color: #a1610d; color: white;">
+                <td>Total</td>
+                <td>Humains</td>
+                <td>Bots</td>
+            </tr>
+            <tr>
+                <td><%= guild.memberCount %></td>
+                <td><%= guild.members.cache.filter(u => !u.user.bot).size %></td>
+                <td><%= guild.members.cache.filter(u => u.user.bot).size %></td>
+            </tr>
+        </table>
+    </div>
 </body>
 
 </html>
