@@ -39,5 +39,5 @@ export enum EMOJIS {
     RIGHTARROW = "➡",
     TADAEMOJI = "🎉",
     ADMINSEMOJI = "🚔",
-    OWNEROLNYEMOJI = "🔐"
+    OWNERONLYEMOJI = "🔐"
 };

@@ -1,0 +1,10 @@
+<%
+    limitWarning = function(nbr, limit = 0, warnFrom = limit * 0.9) {
+        if (nbr >= warnFrom) return `<span class="warning">${nbr}</span>/${limit}`;
+        else return `<b>${nbr}</b>/${limit}`;
+    };
+
+    presentUser = function(user) {
+        return `<img style="height: 25px; width: 25px; vertical-align: middle;" onclick="window.open('${user.avatarURL({dynamic: true})}', '_blank').focus()" alt="" src="${user.avatarURL({dynamic: true})}" /> ${user.username}`;
+    };
+%>
