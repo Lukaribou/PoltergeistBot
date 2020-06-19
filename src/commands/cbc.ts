@@ -8,8 +8,9 @@ export default class CBCCommand extends Command {
     categorie = 'Autre';
 
     async execute(args: CommandParams): Promise<void> {
-        if (args.message.guild.member(args.message.author).hasPermission("ADMINISTRATOR") && !args.message.mentions.members.first()) { args.message.channel.send(`${EMOJIS.XEMOJI} **Cette commande n'est pas disponible pour une personne possédant les permissions administrateur.**`); return; };
-        args.bot.emit("guildMemberAdd", args.message.mentions.members.first() ? args.message.guild.member(args.message.mentions.members.first()) : args.message.guild.member(args.message.author));
+        if (args.message.member.hasPermission("ADMINISTRATOR") && !args.message.mentions.members.first()) { args.message.channel.send(`${EMOJIS.XEMOJI} **Cette commande n'est pas disponible pour une personne possédant les permissions administrateur.**`); return; }
+        if (args.message.mentions.members.first() && !args.message.member.hasPermission("ADMINISTRATOR")) { args.message.channel.send(`${EMOJIS.XEMOJI} **Seule une personne avec les permissions administrateur peut effectuer cette commande à la place de quelqu'un.**`); return; }
+        args.bot.emit("guildMemberAdd", args.message.mentions.members.first() ? args.message.mentions.members.first() : args.message.member);
         args.message.channel.send(`${EMOJIS.OKEMOJI} **Vérifiez vos messages privés.**`);
     };
 };
