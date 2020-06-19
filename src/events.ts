@@ -40,7 +40,8 @@ export async function onGuildMemberJoin(member: GuildMember): Promise<void> { //
     let em: MessageEmbed = new MessageEmbed().setColor(0x0000FF).setDescription(`Cliquez sur les réactions pour choisir quels bots vous souhaitez utiliser.\n${EMOJIS.WARNINGEMOJI} Si le salon existe déjà, il est possible qu'il soit dupliqué.\n\n${EMOJIS.OKEMOJI} pour valider, ${EMOJIS.XEMOJI} pour annuler.`); // 0x0000FF = #0000FF = 0, 0, 255 = bleu
     botsListDb.list.forEach((e: [string, string]) => em.addField(`**__${member.guild.member(e[0]).user.username}__**`, emf(e[1]), true)); // e[0] = id, e[1] = émoji
     member.send(em)
-        .then(async msg => { // Une fois que le message a été envoyé, on le récupère
+        .catch(() => (<TextChannel>member.guild.channels.cache.get('705851074921234432')).send(`${EMOJIS.WARNINGEMOJI} ${member} **Je n'arrive pas à vous envoyer un message privé. Changez vos paramètres puis faites la commande \`${bot.config.prefix}cbc\` pour que je vous renvoie le message et que vous puissiez choisir vos salons.**`))
+        .then(async (msg: Message) => { // Une fois que le message a été envoyé, on le récupère
             const collector: ReactionCollector = msg.createReactionCollector((_, user: User) => user.id == member.user.id, { time: 3e5 }); // On ne prend que les réactions de l'utilisateur | 3e5 ms = 5 minutes
             botsListDb.list.forEach(async (e: [string, string]) => await msg.react(emf(e[1])).catch()); // Pour chaque entrée on réagit avec l'émoji donné
             await msg.react(EMOJIS.OKEMOJI).catch();
@@ -89,8 +90,8 @@ export async function onGuildMemberJoin(member: GuildMember): Promise<void> { //
                             ]
                         }).then(c => {
                             userCategory = c;
-                            member.send(`${EMOJIS.OKEMOJI} **Votre catégorie a été créée. ${EMOJIS.WARNINGEMOJI} Le bot détermine quelle catégorie est la votre grâce aux permissions de celles-ci, merci donc de ne pas les modifier.**`);
-                        }).catch(e => { member.send(`${EMOJIS.XEMOJI} **Une erreur est survenue...\nEnvoyez une capture d'écran de ce message à** ${bot.users.cache.get(bot.config.ownerId)}:\`\`\`${e}\`\`\``); return; });
+                            member.send(`${EMOJIS.OKEMOJI} **Votre catégorie a été créée. ${EMOJIS.WARNINGEMOJI} Le bot détermine quelle catégorie est la votre grâce aux permissions de celles-ci, merci donc de ne pas les modifier.**`).catch();
+                        }).catch(e => { member.send(`${EMOJIS.XEMOJI} **Une erreur est survenue...\nEnvoyez une capture d'écran de ce message à** ${bot.users.cache.get(bot.config.ownerId)}:\`\`\`${e}\`\`\``).catch(); return; });
 
                         collected.forEach(async (_, key: string) => {
                             var selectedBotId: string = botsListDb.list.find((x: string[]) => x[1] == key)[0]; // On prend le bot correspondant à l'émoji
@@ -102,7 +103,7 @@ export async function onGuildMemberJoin(member: GuildMember): Promise<void> { //
                                     topic: `Salon créé pour ${member}`,
                                     reason: `L'utilisateur ${member.user.username} a choisi ce bot.`,
                                     parent: userCategory // On l'ajoute à la catégorie
-                                }).catch(e => { member.send(`${EMOJIS.XEMOJI} **Une erreur est survenue...\nEnvoyez une capture d'écran de ce message à** ${bot.users.cache.get(bot.config.ownerId)}:\`\`\`${e}\`\`\``); return; });
+                                }).catch(e => { member.send(`${EMOJIS.XEMOJI} **Une erreur est survenue...\nEnvoyez une capture d'écran de ce message à** ${bot.users.cache.get(bot.config.ownerId)}:\`\`\`${e}\`\`\``).catch(); return; });
                             };
                         });
                         msgContent = `${EMOJIS.OKEMOJI} **Vos salons ont bien été créés. Si vous ne les voyez pas, merci de contacter un administrateur.**`;
@@ -113,10 +114,11 @@ export async function onGuildMemberJoin(member: GuildMember): Promise<void> { //
                     default:
                         msgContent = `${EMOJIS.WARNINGEMOJI} **Temps imparti de 5 minutes dépassé.**`;
                 };
-                msg.delete().then(() => msg.channel.send(msgContent)).catch();
+                (await (await msg.suppressEmbeds()).reactions.removeAll()).delete()
+                    .then(() => msg.channel.send(msgContent))
+                    .catch();
             });
-        })
-        .catch(() => (<TextChannel>member.guild.channels.cache.get('705851074921234432')).send(`${EMOJIS.WARNINGEMOJI} ${member} **Je n'arrive pas à vous envoyer un message privé. Changez vos paramètres puis faites la commande \`cbc\` pour que je vous renvoie le message et que vous puissiez choisir vos salons.**`));
+        });
     // Si il y a une erreur c'est sûrement que le bot n'arrive pas à envoyer un MP à la personne
     // <TextChannel> me permet de caster (changer le type)
 };
@@ -136,5 +138,5 @@ export async function onGuildMemberLeft(member: GuildMember): Promise<void> {
  * Actualise le statut du bot
  */
 export function updateStatus(): void {
-    bot.user.setActivity(`${bot.config.prefix}help, ${bot.guilds.cache.first().channels.cache.size} salons pour ${bot.guilds.cache.first().memberCount}`, { type: "WATCHING" }); // Configurer le "Joue à"
+    bot.user.setActivity(`${bot.config.prefix}help, ${bot.guilds.cache.first().channels.cache.size} salons pour ${bot.guilds.cache.first().memberCount} membres`, { type: "WATCHING" }); // Configurer le "Joue à"
 }
