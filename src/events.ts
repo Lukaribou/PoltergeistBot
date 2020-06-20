@@ -77,7 +77,7 @@ export async function onGuildMemberJoin(member: GuildMember): Promise<void> { //
                             permissionOverwrites: [
                                 {
                                     id: member, // Pour l'utilisateur
-                                    allow: ['MANAGE_CHANNELS', 'VIEW_CHANNEL', 'SEND_MESSAGES', 'STREAM', 'USE_VAD', 'PRIORITY_SPEAKER']
+                                    allow: ['VIEW_CHANNEL', 'SEND_MESSAGES', 'STREAM', 'USE_VAD', 'PRIORITY_SPEAKER']
                                 },
                                 {
                                     id: member.guild.roles.everyone, // Pour everyone
@@ -126,10 +126,13 @@ export async function onGuildMemberJoin(member: GuildMember): Promise<void> { //
 export async function onGuildMemberLeft(member: GuildMember): Promise<void> {
     updateStatus()
     if (member.permissions.any(['ADMINISTRATOR', 'MANAGE_CHANNELS', 'MANAGE_ROLES'])) return;
-    member.guild.channels.cache.filter(c => c.type === 'category').forEach(c => {
-        if (c.permissionsFor(member).has(['MANAGE_CHANNELS', 'VIEW_CHANNEL', 'SEND_MESSAGES', 'STREAM', 'USE_VAD', 'PRIORITY_SPEAKER']) && !c.permissionsFor(member.guild.roles.everyone).has('VIEW_CHANNEL')) {
+
+    member.guild.channels.cache.filter(c => c.type === 'category').forEach((c: CategoryChannel) => {
+        if (c.permissionsFor(member)
+            && c.permissionsFor(member).has(['VIEW_CHANNEL', 'SEND_MESSAGES', 'STREAM', 'USE_VAD', 'PRIORITY_SPEAKER'])
+            && !c.permissionsFor(member.guild.roles.everyone).has('VIEW_CHANNEL')) {
+            c.children.forEach(child => child.delete(`Suppression automatique des salons de ${member.user.tag}.`).catch());
             c.delete(`Suppression automatique des salons de ${member.user.tag}.`).catch();
-            (c as CategoryChannel).children.forEach(child => child.delete(`Suppression automatique des salons de ${member.user.tag}.`).catch());
         };
     });
 };
