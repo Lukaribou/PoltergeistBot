@@ -19,11 +19,8 @@ export async function onMessage(message: Message): Promise<void> {
 
     if (bot.commands.has(command) || bot.aliases.has(command)) {
         const comm: Command = bot.commands.get(command) || bot.aliases.get(command);
-        comm.execute({ args: args, message: message, bot: this })
-            .catch()
-            .then(() => message.fetch()
-                .catch()
-                .then(m => m.delete()));
+        message.delete();
+        comm.execute({ args: args, message: message, bot: this }).catch();
     };
 };
 
