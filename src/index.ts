@@ -4,12 +4,6 @@ import { readdir } from "fs";
 import { onReady, onMessage, onGuildMemberJoin, onGuildMemberLeft, updateStatus } from "./events";
 import schedule = require("node-schedule");
 
-import * as express from "express";
-import * as bodyParser from "body-parser";
-import e = require("express");
-import * as path from "path";
-
-
 export class Poltergeist extends Client { // extends Client = hérite des propriétés et méthodes de Discord.Client
     // bot
     public commands: Collection<string, Command> = new Collection();
@@ -17,9 +11,6 @@ export class Poltergeist extends Client { // extends Client = hérite des propri
     public prefix: string = undefined;
     public ownerId: string = undefined;
     public config: Config = undefined;
-
-    // dashboard
-    public app: express.Application = undefined;
 
     constructor(config: Config) {
         super({ disableMentions: 'everyone' }); // On empêche le bot de pouvoir faire des @everyone
@@ -41,25 +32,6 @@ export class Poltergeist extends Client { // extends Client = hérite des propri
         this.on("channelDelete", () => updateStatus);
 
         await this.login(this.config.token);
-
-        this.startServer();
-    }
-
-    private startServer(): void {
-        this.app = express();
-
-        this.app.use(bodyParser.json());
-        this.app.use(bodyParser.urlencoded({ extended: false }));
-        this.app.use(express.static(__dirname + '/dashboard/views'));
-
-        this.app.set('view engine', 'ejs');
-        this.app.set('views', path.join(__dirname, '/dashboard/views/'));
-
-        require('./dashboard/router').routes(this.app);
-
-        const PORT = process.env.PORT || 3000;
-
-        this.app.listen(PORT, () => console.log(`Ecoute le port ${PORT}`));
     }
 
     private loadCommands(): void {
@@ -82,7 +54,6 @@ export class Poltergeist extends Client { // extends Client = hérite des propri
 }
 
 export const bot: Poltergeist = new Poltergeist(new Config());
-export const app: e.Application = bot.app;
 
 schedule.scheduleJob('0 0 0 * * *', () => {
     bot.guilds.cache.first().members.cache
