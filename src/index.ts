@@ -2,10 +2,13 @@ import { Client, Collection } from "discord.js";
 import { Command, Config } from "./utils/structs";
 import { readdir } from "fs";
 import { onReady, onMessage, onGuildMemberJoin, onGuildMemberLeft, updateStatus } from "./events";
+import schedule = require("node-schedule");
+
 import * as express from "express";
 import * as bodyParser from "body-parser";
 import e = require("express");
 import * as path from "path";
+
 
 export class Poltergeist extends Client { // extends Client = hérite des propriétés et méthodes de Discord.Client
     // bot
