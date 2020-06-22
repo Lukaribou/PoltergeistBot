@@ -55,7 +55,7 @@ export class Poltergeist extends Client { // extends Client = hérite des propri
 
 export const bot: Poltergeist = new Poltergeist(new Config());
 
-schedule.scheduleJob('0 0 0 * * *', () => {
+/*schedule.scheduleJob('0 0 0 * * *', () => {
     bot.guilds.cache.first().members.cache
         .filter(u => u.lastMessageID === null
             && <number><unknown>(Date.now() / 8.64e7 - u.joinedTimestamp / 8.64e7).toFixed(0) > 7)
@@ -63,4 +63,4 @@ schedule.scheduleJob('0 0 0 * * *', () => {
             u.send(`${EMOJIS.WARNINGEMOJI} [__Message automatique__] - Vous avez été **exclu(e)** de \`EnderShop Support 🌙\` car vous n'avez **pas parlé 1 seul fois pendant les 7 jours ayant suivis votre arrivée.**`).catch();
             u.kick("Autokick +7j innactivité & 0 message").catch();
         });
-});
+});*/
