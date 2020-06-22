@@ -1,5 +1,5 @@
-import { Client, Collection } from "discord.js";
-import { Command, Config } from "./utils/structs";
+import { Client, Collection, GuildMember } from "discord.js";
+import { Command, Config, EMOJIS } from "./utils/structs";
 import { readdir } from "fs";
 import { onReady, onMessage, onGuildMemberJoin, onGuildMemberLeft, updateStatus } from "./events";
 import schedule = require("node-schedule");
@@ -28,7 +28,7 @@ export class Poltergeist extends Client { // extends Client = hérite des propri
         this.config = config;
 
         this.run();
-    };
+    }
 
     async run(): Promise<void> {
         this.loadCommands();
@@ -43,7 +43,7 @@ export class Poltergeist extends Client { // extends Client = hérite des propri
         await this.login(this.config.token);
 
         this.startServer();
-    };
+    }
 
     private startServer(): void {
         this.app = express();
@@ -60,7 +60,7 @@ export class Poltergeist extends Client { // extends Client = hérite des propri
         const PORT = process.env.PORT || 3000;
 
         this.app.listen(PORT, () => console.log(`Ecoute le port ${PORT}`));
-    };
+    }
 
     private loadCommands(): void {
         readdir(__dirname + "/commands", (err: NodeJS.ErrnoException, filenames: Array<string>) => {
@@ -75,11 +75,21 @@ export class Poltergeist extends Client { // extends Client = hérite des propri
                     let pull = new (require(`./commands/${file}`).default)();
                     this.commands.set(pull.name, pull);
                     pull.aliases.forEach((alias: string) => this.aliases.set(alias, pull));
-                } catch (e) { console.log(e); };
+                } catch (e) { console.log(e); }
             });
         });
-    };
-};
+    }
+}
 
 export const bot: Poltergeist = new Poltergeist(new Config());
 export const app: e.Application = bot.app;
+
+schedule.scheduleJob('0 0 0 * * *', () => {
+    bot.guilds.cache.first().members.cache
+        .filter(u => u.lastMessageID === null
+            && <number><unknown>(Date.now() / 8.64e7 - u.joinedTimestamp / 8.64e7).toFixed(0) > 7)
+        .forEach((u: GuildMember) => {
+            u.send(`${EMOJIS.WARNINGEMOJI} [__Message automatique__] - Vous avez été **exclu(e)** de \`EnderShop Support 🌙\` car vous n'avez **pas parlé 1 seul fois pendant les 7 jours ayant suivis votre arrivée.**`).catch();
+            u.kick("Autokick +7j innactivité & 0 message").catch();
+        });
+});
