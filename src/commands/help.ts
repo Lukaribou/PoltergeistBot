@@ -18,7 +18,9 @@ export default class HelpCommand extends Command {
             var categories: Collection<string, Command[]> = new Collection<string, Command[]>();
 
             // Fetch les catégories
-            args.bot.commands.forEach(c => categories.has(c.categorie) ? categories.set(c.categorie, categories.get(c.categorie).concat([c])) : categories.set(c.categorie, [c]));
+            args.bot.commands.forEach(c => categories.has(c.categorie) ?
+                categories.set(c.categorie, categories.get(c.categorie).concat([c]))
+                : categories.set(c.categorie, [c]));
 
             categories = new Collection([...categories.entries()].sort()); // Sort la collection en fonction de l'alphabet sur la clé
 
@@ -26,8 +28,9 @@ export default class HelpCommand extends Command {
                 .setAuthor(`Page d'aide de ${args.bot.user.username}`, args.bot.user.avatarURL(), 'https://github.com/Lukaribou')
                 .setFooter(`${args.bot.commands.size} commandes disponibles.`);
 
-            categories.forEach((categ: Command[], name: string) => em.addField(`${assoc.get(name)} - ${name}`, "`" + categ.map(c => c.name).join("`, `") + "`"), true);
-            
+            categories.forEach((categ: Command[], name: string) =>
+                em.addField(`${assoc.get(name)} - ${name}`, "`" + categ.map(c => c.name).join("`, `") + "`"), true);
+
             args.message.channel.send(em);
         } else if (args.bot.commands.has(args.args[0]) || args.bot.aliases.has(args.args[0])) {
             const command: Command = args.bot.commands.get(args.args[0]) || args.bot.aliases.get(args.args[0]);
