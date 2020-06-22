@@ -23,13 +23,13 @@ export class Poltergeist extends Client { // extends Client = hérite des propri
 
     async run(): Promise<void> {
         this.loadCommands();
-        this.on("ready", onReady); // Déclenché quand le bot est connecté
-        this.on("message", onMessage); // Quand un message est envoyé (soit au bot soit dans un salon)
-        this.on("guildMemberAdd", onGuildMemberJoin); // Quand quelqu'un rejoind le serveur
-        this.on("guildMemberRemove", onGuildMemberLeft); // Quand quelqu'un quitte le serveur (si il est kick ou ban aussi)
-        this.on("error", () => this.run()); // Si il y a une erreur on le redémarre
-        this.on("channelCreate", () => updateStatus);
-        this.on("channelDelete", () => updateStatus);
+        this.on("ready", onReady)
+            .on("message", onMessage)
+            .on("guildMemberAdd", onGuildMemberJoin)
+            .on("guildMemberRemove", onGuildMemberLeft)
+            .on("error", () => this.run())
+            .on("channelCreate", () => updateStatus)
+            .on("channelDelete", () => updateStatus);
 
         await this.login(this.config.token);
     }
