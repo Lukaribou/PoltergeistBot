@@ -127,10 +127,11 @@ export async function onGuildMemberJoin(member: GuildMember): Promise<void> { //
                     default:
                         msgContent = `${EMOJIS.WARNINGEMOJI} **Temps imparti de 5 minutes dépassé.**`;
                 };
-                (await (await msg.suppressEmbeds()).reactions.removeAll())
-                    .delete()
-                    .then(() => msg.channel.send(msgContent).catch())
-                    .catch();
+
+                msg.channel.send(msgContent).catch();
+                
+                (await msg.suppressEmbeds().catch())
+                    .delete().catch();
             });
         });
     // Si il y a une erreur c'est sûrement que le bot n'arrive pas à envoyer un MP à la personne
@@ -138,7 +139,6 @@ export async function onGuildMemberJoin(member: GuildMember): Promise<void> { //
 };
 
 export async function onGuildMemberLeft(member: GuildMember): Promise<void> {
-    updateStatus()
     if (member.permissions.any(['ADMINISTRATOR', 'MANAGE_CHANNELS', 'MANAGE_ROLES'])) return;
 
     member.guild.channels.cache
@@ -152,6 +152,8 @@ export async function onGuildMemberLeft(member: GuildMember): Promise<void> {
                 c.delete(`Suppression automatique des salons de ${member.user.tag}.`).catch();
             };
         });
+
+    updateStatus();
 };
 
 /**
