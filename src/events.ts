@@ -108,9 +108,11 @@ export async function onGuildMemberJoin(member: GuildMember): Promise<void> { //
 
                         collected.forEach(async (_, key: string) => {
                             var selectedBotId: string = botsListDb.list.find((x: string[]) => x[1] == key)[0]; // On prend le bot correspondant à l'émoji
+                            
                             if (selectedBotId && bot.users.cache.get(selectedBotId)) {
                                 let selectedBot: User = bot.users.cache.get(selectedBotId);
                                 msgContent.concat(` \`${selectedBot.username}\``);
+
                                 await member.guild.channels.create(selectedBot.username, {
                                     type: 'text',
                                     topic: `Salon créé pour ${member}`,
