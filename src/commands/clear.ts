@@ -9,7 +9,9 @@ export default class ClearCommand extends Command {
 
     async execute(args: CommandParams): Promise<void> {
         if (!(args.message.channel as GuildChannel).permissionsFor(args.message.author).any(['MANAGE_MESSAGES', 'MANAGE_CHANNELS'])) { args.message.channel.send(`${EMOJIS.XEMOJI} **Vous devez avoir la permission de gérer les messages dans ce salon (ou gérer le salon) pour utiliser cette commande.**`); return; };
-        if (!args.args[0] || (isNaN(parseInt(args.args[0])) && args.args[0] !== 'all') || parseInt(args.args[0]) < 1) { args.message.channel.send(`${EMOJIS.XEMOJI} **Le paramètre 1 doit être un nombre positif ou \`all\``); return; };
+        if (!args.args[0]
+            || (isNaN(parseInt(args.args[0])) && args.args[0] !== 'all')
+            || parseInt(args.args[0]) < 1) { args.message.channel.send(`${EMOJIS.XEMOJI} **Le paramètre 1 doit être un nombre positif ou \`all\``); return; };
 
         var compteur: number = 0;
         var mes: Message[] = null;
@@ -26,7 +28,9 @@ export default class ClearCommand extends Command {
         } while (mes.length !== 0);
         args.message.channel.send(`${EMOJIS.OKEMOJI} **${compteur} messages ont été supprimés. Les messages de plus de 14 jours ne peuvent pas être supprimés avec le bot.**`)
             .catch()
-            .then(m => setTimeout(() => m.delete().catch(), 5000)); // On supprime le message au bout de 5 secondes
+            .then(m =>
+                setTimeout(() =>
+                    m.delete().catch(), 5000)); // On supprime le message au bout de 5 secondes
     };
 };
 
