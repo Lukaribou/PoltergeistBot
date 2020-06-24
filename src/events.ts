@@ -1,6 +1,7 @@
 import { bot } from './index';
 import { Message, GuildMember, MessageEmbed, TextChannel, MessageReaction, EmojiResolvable, Collection, User, CategoryChannel, ReactionCollector } from 'discord.js';
 import { Command, botsListDb, EMOJIS } from './utils/structs';
+import { getMemberCategory } from './utils/functions';
 
 export function onReady(): void {
     console.log(`Connecté sur ${bot.guilds.cache.first()}, ${bot.guilds.cache.first().memberCount} membres et ${bot.guilds.cache.first().channels.cache.size} salons.`);
@@ -41,8 +42,8 @@ export async function onGuildMemberJoin(member: GuildMember): Promise<void> { //
         .forEach((e: [string, string]) =>
             em.addField(`**__${member.guild.member(e[0]).user.username}__**`, emf(e[1]), true)); // e[0] = id, e[1] = émoji
 
-    member.send(em)
-        .catch(() => (<TextChannel>member.guild.channels.cache.get('705851074921234432')).send(`${EMOJIS.WARNINGEMOJI} ${member} **Je n'arrive pas à vous envoyer un message privé. Changez vos paramètres puis faites la commande \`${bot.config.prefix}cbc\` pour que je vous renvoie le message et que vous puissiez choisir vos salons.**`)).catch()
+    member.user.send(em)
+        .catch(() => (<TextChannel>member.guild.channels.cache.get('705851074921234432')).send(`${EMOJIS.WARNINGEMOJI} ${member} **Je n'arrive pas à vous envoyer un message privé. Changez vos paramètres puis faites la commande \`${bot.config.prefix}cbc\` pour que je vous renvoie le message et que vous puissiez choisir vos salons.**`).catch())
         .then(async (msg: Message) => {
             const collector: ReactionCollector = msg.createReactionCollector((_, user: User) =>
                 user.id == member.user.id, { time: 3e5 }); // On ne prend que les réactions de l'utilisateur | 3e5 ms = 5 minutes
@@ -103,12 +104,12 @@ export async function onGuildMemberJoin(member: GuildMember): Promise<void> { //
                                 ]
                             }).then(c => {
                                 userCategory = c;
-                                member.send(`${EMOJIS.OKEMOJI} **Votre catégorie a été créée. ${EMOJIS.WARNINGEMOJI} Le bot détermine quelle catégorie est la votre grâce aux permissions de celles-ci, merci donc de ne pas les modifier.**`).catch();
-                            }).catch(e => { member.send(`${EMOJIS.XEMOJI} **Une erreur est survenue...\nEnvoyez une capture d'écran de ce message à** ${bot.users.cache.get(bot.config.ownerId)}:\`\`\`${e}\`\`\``).catch(); return; });
+                                member.user.send(`${EMOJIS.OKEMOJI} **Votre catégorie a été créée. ${EMOJIS.WARNINGEMOJI} Le bot détermine quelle catégorie est la votre grâce aux permissions de celles-ci, merci donc de ne pas les modifier.**`).catch();
+                            }).catch(e => { member.user.send(`${EMOJIS.XEMOJI} **Une erreur est survenue...\nEnvoyez une capture d'écran de ce message à** ${bot.users.cache.get(bot.config.ownerId)}:\`\`\`${e}\`\`\``).catch(); return; });
 
                         collected.forEach(async (_, key: string) => {
                             var selectedBotId: string = botsListDb.list.find((x: string[]) => x[1] == key)[0]; // On prend le bot correspondant à l'émoji
-                            
+
                             if (selectedBotId && bot.users.cache.get(selectedBotId)) {
                                 let selectedBot: User = bot.users.cache.get(selectedBotId);
                                 msgContent.concat(` \`${selectedBot.username}\``);
@@ -118,7 +119,7 @@ export async function onGuildMemberJoin(member: GuildMember): Promise<void> { //
                                     topic: `Salon créé pour ${member}`,
                                     reason: `L'utilisateur ${member.user.username} a choisi ce bot.`,
                                     parent: userCategory // On l'ajoute à la catégorie
-                                }).catch(e => { member.send(`${EMOJIS.XEMOJI} **Une erreur est survenue...\nEnvoyez une capture d'écran de ce message à** ${bot.users.cache.get(bot.config.ownerId)}:\`\`\`${e}\`\`\``).catch(); return; });
+                                }).catch(e => { member.user.send(`${EMOJIS.XEMOJI} **Une erreur est survenue...\nEnvoyez une capture d'écran de ce message à** ${bot.users.cache.get(bot.config.ownerId)}:\`\`\`${e}\`\`\``).catch(); return; });
                             };
                         });
                         msgContent = `${EMOJIS.OKEMOJI} **Vos salons ont bien été créés. Si vous ne les voyez pas, merci de contacter un administrateur.**`;
@@ -131,33 +132,27 @@ export async function onGuildMemberJoin(member: GuildMember): Promise<void> { //
                 };
 
                 msg.channel.send(msgContent).catch();
-                
+
                 (await msg.suppressEmbeds().catch())
                     .delete().catch();
             });
         });
     // Si il y a une erreur c'est sûrement que le bot n'arrive pas à envoyer un MP à la personne
     // <TextChannel> me permet de caster (changer le type)
-};
+}
 
 export async function onGuildMemberLeft(member: GuildMember): Promise<void> {
     if (member.permissions.any(['ADMINISTRATOR', 'MANAGE_CHANNELS', 'MANAGE_ROLES'])) return;
 
-    member.guild.channels.cache
-        .filter(c => c.type === 'category')
-        .forEach((c: CategoryChannel) => {
-            if (c.permissionsFor(member)
-                && c.permissionsFor(member).has(['VIEW_CHANNEL', 'SEND_MESSAGES', 'STREAM', 'USE_VAD', 'PRIORITY_SPEAKER'])
-                && !c.permissionsFor(member.guild.roles.everyone).has('VIEW_CHANNEL')) {
-                c.children.forEach(child =>
-                    child.delete(`Suppression automatique des salons de ${member.user.tag}.`).catch());
-                c.delete(`Suppression automatique des salons de ${member.user.tag}.`).catch();
-            };
-        });
+    var categ = getMemberCategory(member);
+    if (categ && !categ.name.startsWith('duo -')) {
+        categ.children.forEach(child =>
+            child.delete(`Suppression automatique des salons de ${member.user.tag}.`).catch());
+        categ.delete(`Suppression automatique des salons de ${member.user.tag}.`).catch();
+    };
 
     updateStatus();
-};
-
+}
 /**
  * Actualise le statut du bot
  */
