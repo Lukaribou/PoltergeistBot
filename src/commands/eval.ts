@@ -22,7 +22,7 @@ export default class EvalCommand extends Command {
                 args.message.channel.send({
                     embed: {
                         color: 3066993,
-                        description: "**📥 Code :\n" + toEval + "\n:outbox_tray: Résultat : `\n" + evaluated + "`**",
+                        description: "**📥 Code :\n" + toEval + "\n:outbox_tray: Résultat : \n`" + evaluated + "`**",
                         timestamp: Date.now(),
                     }
                 });
