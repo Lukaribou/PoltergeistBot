@@ -30,7 +30,7 @@ export default class ClearCommand extends Command {
             .catch()
             .then(m =>
                 setTimeout(() =>
-                    m.delete().catch(), 5000)); // On supprime le message au bout de 5 secondes
+                    m.delete().catch(), 2500)); // On supprime le message au bout de 5 secondes
     };
 };
 
