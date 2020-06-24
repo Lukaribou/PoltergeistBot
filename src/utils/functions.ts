@@ -27,7 +27,19 @@ export function isBotAdmin(user: User): boolean {
 export function getMemberCategory(member: GuildMember): CategoryChannel {
     return member.hasPermission(['ADMINISTRATOR', 'MANAGE_CHANNELS', 'MANAGE_ROLES']) ?
         null : member.guild.channels.cache.filter(c => c.type === 'category'
+            && c.permissionsFor(member)
             && c.permissionsFor(member).has(['VIEW_CHANNEL', 'SEND_MESSAGES', 'STREAM', 'USE_VAD', 'PRIORITY_SPEAKER'])
             && !c.permissionsFor(member.guild.roles.everyone).has('VIEW_CHANNEL'))
             .first() as CategoryChannel;
+}
+
+/**
+ * Renvoie le nombre de jours entre deux dates
+ * @param old La date la plus vieille
+ * @param newest La date la moins ancienne | Si non spécifié: Date.now()
+ */
+export function daysBetween(old: number | Date, youngest: number | Date = Date.now()): number {
+    if (youngest instanceof Date) youngest = youngest.getMilliseconds();
+    if (old instanceof Date) old = old.getMilliseconds();
+    return parseInt((youngest / 8.64e7 - old / 8.64e7).toFixed(0));
 }
