@@ -5,7 +5,7 @@ import { GuildMember } from "discord.js";
 export default class ManageBotsListCommand extends Command {
     name = 'manage-bots-list';
     desc = "Permet de gérer l'association des bots et des émojis pour la création des salons";
-    usage = "mbl <add/rem> <mention du bot> <émoji>";
+    usage = "mbl <add/rem/list> <mention du bot> <émoji>";
     categorie = 'Système';
     botAdminsOnly = true;
     aliases = ['mbl'];
@@ -17,12 +17,18 @@ export default class ManageBotsListCommand extends Command {
           */
         const getEmoji = (str: string): string | undefined => str.startsWith('<:') ? (args.message.guild.emojis.cache.has(str.split(/(\d+)/)[1]) ? str.split(/(\d+)/)[1] : undefined) : (str.match(regex) ? str : undefined);
 
-        if (!args.args[0] || !['add', 'rem'].includes(args.args[0])) { args.message.channel.send(`${EMOJIS.XEMOJI} **L'argument 1 doit être \`add\` ou \`rem\`.**`); return; };
+        if (!args.args[0] || !['add', 'rem', 'list'].includes(args.args[0])) { args.message.channel.send(`${EMOJIS.XEMOJI} **L'argument 1 doit être \`add\`, \`rem\` ou \`list\`.**`); return; };
+
+        if (args.args[0] === 'list') {
+            args.message.channel.send(`**__Association "bot <-> émoji:"__**\n${botsListDb.list.map(x => `<@${x[0]}> : ${getEmoji(x[1]) ? getEmoji(x[1]) : `${args.bot.emojis.cache.get(x[1])}`}`).join('\n')}`);
+            return
+        }
+
         if (!args.args[1] || !args.message.mentions.members.first() || !args.message.mentions.members.first().user.bot) { args.message.channel.send(`${EMOJIS.XEMOJI}**L'argument 2 doit être la mention du bot.**`); return; }
         if (!isBotAdmin(args.message.author)) { args.message.channel.send(`${EMOJIS.XEMOJI} **Cette commande est réservée aux administrateurs du bot.**`); return; };
 
         var selectedBot: GuildMember = args.message.mentions.members.first();
-        if (args.args[0] == 'add') {
+        if (args.args[0] === 'add') {
             if (!args.args[2] || !getEmoji(args.args[2])) { args.message.channel.send(`${EMOJIS.XEMOJI} **L'argument 3 doit être l'émoji à associer au bot.**`); return; };
             if (botsListDb.list.find(x => x[1] == getEmoji(args.args[2]))) { args.message.channel.send(`${EMOJIS.XEMOJI} **Cet émoji est déjà utilisé pour un autre bot.**`); return; };
             // Si le bot est déjà dans la bdd on change l'émoji sinon on ajoute les deux
