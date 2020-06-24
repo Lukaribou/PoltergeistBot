@@ -1,8 +1,9 @@
-import { Client, Collection, GuildMember } from "discord.js";
+import { Client, Collection, GuildMember, TextChannel, CategoryChannel } from "discord.js";
 import { Command, Config, EMOJIS } from "./utils/structs";
 import { readdir } from "fs";
 import { onReady, onMessage, onGuildMemberJoin, onGuildMemberLeft, updateStatus } from "./events";
-import schedule = require("node-schedule");
+import { scheduleJob } from "node-schedule";
+import { getMemberCategory, daysBetween } from "./utils/functions";
 
 export class Poltergeist extends Client { // extends Client = hérite des propriétés et méthodes de Discord.Client
     // bot
@@ -55,12 +56,32 @@ export class Poltergeist extends Client { // extends Client = hérite des propri
 
 export const bot: Poltergeist = new Poltergeist(new Config());
 
-schedule.scheduleJob('0 0 0 * * *', () => {
+scheduleJob('0 0 0 * * *', () => {
     bot.guilds.cache.first().members.cache
-        .filter(u => u.lastMessageID === null
-            && <number><unknown>(Date.now() / 8.64e7 - u.joinedTimestamp / 8.64e7).toFixed(0) > 7)
-        .forEach((u: GuildMember) => {
-            bot.emit('guildMemberRemove', u);
-            u.send(`${EMOJIS.WARNINGEMOJI} [__Message automatique__] - Vos salons ont été **supprimés** de \`${bot.guilds.cache.first()}\` car vous n'avez **pas parlé 1 seul fois pendant les 7 jours ayant suivis votre arrivée.**`).catch();
+        .filter(gm => daysBetween(gm.joinedTimestamp) > 7) // Rejoint +7j
+        .forEach(async (gm: GuildMember) => {
+            var categ: CategoryChannel = getMemberCategory(gm);
+
+            if (categ) {
+                var liste: string[] = [];
+                
+                categ.children
+                    .filter((c: TextChannel) => daysBetween(c.createdTimestamp) > 7) // Salons vieux +7j
+                    .forEach(async (c: TextChannel) => {
+                        if ((await c.messages.fetch({ limit: 1 }).catch()).size === 0) {// => 0 message
+                            c.delete('[Suppression automatique] - Salon inutilisé').catch();
+                            liste.push(c.name);
+                        }
+                    });
+
+                if ((await categ.fetch().catch()).children.size === 0) { // Tous les salons ont été supprimés
+                    categ.delete('[Suppression automatique] - 0 salon'); // On supprime aussi la catégorie
+                    gm.user.send(`${EMOJIS.WARNINGEMOJI} [__Message automatique__] - Votre catégorie et ses salons ont été **supprimés** de \`${categ.guild.name}\` car vous ne les avez **jamais utilisés**.`).catch();
+                    return;
+                }
+
+                if (liste.length !== 0) // Salons supprimés mais pas tous
+                    gm.user.send(`${EMOJIS.WARNINGEMOJI} [__Message automatique__] - Le(s) salon(s) "\`${liste.join('`, `')}\`" a/ont été **supprimé(s)** de votre catégorie sur \`${categ.guild.name}\` car vous ne les avez **jamais utilisés.**`).catch();
+            }
         });
 });
