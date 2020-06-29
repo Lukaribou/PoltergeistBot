@@ -30,7 +30,7 @@ export default class EvalCommand extends Command {
                 args.message.channel.send({
                     embed: {
                         color: 15158332,
-                        title: 'Evaluation Cancelled',
+                        title: 'Eval annulée',
                         description: `${error}`,
                         timestamp: Date.now()
                     }
