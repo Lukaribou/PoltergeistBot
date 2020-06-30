@@ -75,7 +75,7 @@ scheduleJob('0 0 0 * * *', () => {
                     });
 
                 if ((await categ.fetch().catch()).children.size === 0) { // Tous les salons ont été supprimés
-                    categ.delete('[Suppression automatique] - 0 salon'); // On supprime aussi la catégorie
+                    categ.delete('[Suppression automatique] - 0 salon').catch(); // On supprime aussi la catégorie
                     gm.user.send(`${EMOJIS.WARNINGEMOJI} [__Message automatique__] - Votre catégorie et ses salons ont été **supprimés** de \`${categ.guild.name}\` car vous ne les avez **jamais utilisés**.`).catch();
                     return;
                 }
