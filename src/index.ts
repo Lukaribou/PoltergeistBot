@@ -12,6 +12,7 @@ export class Poltergeist extends Client { // extends Client = hérite des propri
     public prefix: string = undefined;
     public ownerId: string = undefined;
     public config: Config = undefined;
+    public cooldown: string[] = [];
 
     constructor(config: Config) {
         super({ disableMentions: 'everyone' }); // On empêche le bot de pouvoir faire des @everyone

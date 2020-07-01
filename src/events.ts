@@ -16,6 +16,22 @@ export async function onMessage(message: Message): Promise<void> {
     message.channel.send(`${EMOJIS.RIGHTARROW} \`${bot.config.prefix}help\``);
     return;
   };
+
+  if (message.channel.id === "705850506412556288" // Que dans le général
+    && !message.member.hasPermission("ADMINISTRATOR")) {
+    if (!bot.cooldown.includes(message.author.id)) {
+      bot.cooldown.push(message.author.id);
+      setTimeout(() =>
+        bot.cooldown = bot.cooldown.filter(x => x !== message.author.id),
+        1e3);
+    } else {
+      await message.delete().catch();
+      var t = await message.channel.send(`${EMOJIS.WARNINGEMOJI} ${message.author} **Le salon général possède un cooldown de 1 seconde.**`);
+      t.delete({ timeout: 2e3 }).catch()
+      return;
+    }
+  }
+
   if (!message.content.startsWith(bot.prefix)) return; // Si le message ne commence pas par le prefix
 
   const command: string = message.content.split(" ")[0].substring(bot.prefix.length); // exemple: p!eval je suis con => command = test
