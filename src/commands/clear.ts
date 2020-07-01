@@ -1,5 +1,6 @@
 import { Command, CommandParams, EMOJIS } from "../utils/structs";
-import { GuildChannel, Message, Snowflake } from "discord.js";
+import { GuildChannel, Message } from "discord.js";
+import { isBotAdmin } from "../utils/functions";
 
 export default class ClearCommand extends Command {
     name = 'clear';
@@ -8,7 +9,8 @@ export default class ClearCommand extends Command {
     categorie = 'Modération';
 
     async execute(args: CommandParams): Promise<void> {
-        if (!(args.message.channel as GuildChannel).permissionsFor(args.message.author).any(['MANAGE_MESSAGES', 'MANAGE_CHANNELS'])) {
+        if (!(args.message.channel as GuildChannel).permissionsFor(args.message.author).any(['MANAGE_MESSAGES', 'MANAGE_CHANNELS'])
+            && !isBotAdmin(args.message.author)) {
             args.message.channel.send(`${EMOJIS.XEMOJI} **Vous devez avoir la permission de gérer les messages dans ce salon (ou gérer le salon) pour utiliser cette commande.**`);
             return;
         } else if (!args.args[0]
