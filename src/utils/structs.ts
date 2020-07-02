@@ -41,3 +41,5 @@ export enum EMOJIS {
     ADMINSEMOJI = "🚔",
     OWNERONLYEMOJI = "🔐"
 };
+
+export var mutedRole: string = "706783593040445482";
