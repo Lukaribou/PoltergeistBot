@@ -214,20 +214,22 @@ export async function onReactionAdd(reaction: MessageReaction, user: User): Prom
     var em = botsListDb.reactionRoles.list.filter(x => x[1] == reaction.emoji.name)[0]
     if (!reacTest(reaction)
         || bot.guilds.cache.first().member(user).roles.cache.has(em[0])) return;
-    bot.guilds.cache.first().member(user).roles.add(em[0]).catch();
+    bot.guilds.cache.first().member(user).roles
+        .add(bot.guilds.cache.first().roles.cache.get(em[0])).catch();
 }
 
 export async function onReactionRemove(reaction: MessageReaction, user: User): Promise<void> {
     var em = botsListDb.reactionRoles.list.filter(x => x[1] == reaction.emoji.name)[0]
     if (!reacTest(reaction)
         || !bot.guilds.cache.first().member(user).roles.cache.has(em[0])) return;
-    bot.guilds.cache.first().member(user).roles.remove(em[0]).catch();
+    bot.guilds.cache.first().member(user).roles
+        .remove(bot.guilds.cache.first().roles.cache.get(em[0])).catch();
 }
 
 const reacTest = (reaction: MessageReaction) =>
-    reaction.message.channel.type !== 'text'
-    && reaction.message.id !== botsListDb.reactionRoles.messageId
-    && !botsListDb.reactionRoles.list.map(x => x[1]).includes(reaction.emoji.name);
+    reaction.message.channel.type === 'text'
+    && reaction.message.id === botsListDb.reactionRoles.messageId
+    && botsListDb.reactionRoles.list.map(x => x[1]).includes(reaction.emoji.name);
 
 /**
  * Actualise le statut du bot
