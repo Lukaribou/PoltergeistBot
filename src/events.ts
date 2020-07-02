@@ -4,6 +4,7 @@ import { Command, botsListDb, EMOJIS, mutedRole } from './utils/structs';
 import { getMemberCategory } from './utils/functions';
 
 export function onReady(): void {
+    (<TextChannel>bot.guilds.cache.first().channels.cache.get("712578364577153024")).messages.fetch("712580174360739871").catch()
     console.log(`Connecté sur ${bot.guilds.cache.first()}, ${bot.guilds.cache.first().memberCount} membres et ${bot.guilds.cache.first().channels.cache.size} salons.`);
     updateStatus();
 };
@@ -208,6 +209,25 @@ export async function onGuildMemberLeft(member: GuildMember): Promise<void> {
 
     updateStatus();
 }
+
+export async function onReactionAdd(reaction: MessageReaction, user: User): Promise<void> {
+    var em = botsListDb.reactionRoles.list.filter(x => x[1] == reaction.emoji.name)[0]
+    if (!reacTest(reaction)
+        || bot.guilds.cache.first().member(user).roles.cache.has(em[0])) return;
+    bot.guilds.cache.first().member(user).roles.add(em[0]).catch();
+}
+
+export async function onReactionRemove(reaction: MessageReaction, user: User): Promise<void> {
+    var em = botsListDb.reactionRoles.list.filter(x => x[1] == reaction.emoji.name)[0]
+    if (!reacTest(reaction)
+        || !bot.guilds.cache.first().member(user).roles.cache.has(em[0])) return;
+    bot.guilds.cache.first().member(user).roles.remove(em[0]).catch();
+}
+
+const reacTest = (reaction: MessageReaction) =>
+    reaction.message.channel.type !== 'text'
+    && reaction.message.id !== botsListDb.reactionRoles.messageId
+    && !botsListDb.reactionRoles.list.map(x => x[1]).includes(reaction.emoji.name);
 
 /**
  * Actualise le statut du bot

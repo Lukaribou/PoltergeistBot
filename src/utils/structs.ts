@@ -13,7 +13,11 @@ export abstract class Command {
 };
 
 interface IBotsList {
-    list: string[][]
+    list: string[][],
+    reactionRoles: {
+        messageId: string,
+        list: string[][]
+    }
 };
 
 export const confdb = require("../../database/config.json");

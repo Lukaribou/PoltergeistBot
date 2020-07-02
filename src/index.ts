@@ -1,7 +1,7 @@
 import { Client, Collection, GuildMember, TextChannel, CategoryChannel } from "discord.js";
 import { Command, Config, EMOJIS } from "./utils/structs";
 import { readdir } from "fs";
-import { onReady, onMessage, onGuildMemberJoin, onGuildMemberLeft, updateStatus } from "./events";
+import { onReady, onMessage, onGuildMemberJoin, onGuildMemberLeft, updateStatus, onReactionAdd, onReactionRemove } from "./events";
 import { scheduleJob } from "node-schedule";
 import { getMemberCategory, daysBetween } from "./utils/functions";
 
@@ -34,7 +34,9 @@ export class Poltergeist extends Client { // extends Client = hérite des propri
             .on("guildMemberRemove", onGuildMemberLeft)
             .on("error", () => this.run())
             .on("channelCreate", () => updateStatus)
-            .on("channelDelete", () => updateStatus);
+            .on("channelDelete", () => updateStatus)
+            .on("messageReactionAdd", onReactionAdd)
+            .on("messageReactionRemove", onReactionRemove);
 
         await this.login(this.config.token);
     }
