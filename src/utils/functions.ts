@@ -17,7 +17,7 @@ export function saveDB(dbname: string): void {
  * @param user L'utilisateur
  */
 export function isBotAdmin(user: User): boolean {
-    return (user.id == bot.config.ownerId || bot.config.adminsId.includes(user.id)); // || = ou, Array.includes() est une fonction qui permet de voir si le tableau contient une certaine valeur
+    return (user.id == bot.config.ownerId || bot.config.adminsId.includes(user.id));
 };
 
 /**
