@@ -1,5 +1,6 @@
 import { Command, CommandParams, EMOJIS } from '../utils/structs'
 import { isBotAdmin } from '../utils/functions';
+import { Message } from 'discord.js';
 
 export default class EmitCommand extends Command {
     name = "emit";

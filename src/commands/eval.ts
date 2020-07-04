@@ -15,7 +15,7 @@ export default class EvalCommand extends Command {
 
         try {
             var evaluated: any = eval(toEval); // On évalue le code, càd on fait comme si c'était du code écrit comme ici
-        } catch { args.message.delete().catch() } // Si ça passe pas je supprime le message (si ça réussit il est supprimé dans events.ts)
+        } catch { args.message.delete().catch(() => {}) } // Si ça passe pas je supprime le message (si ça réussit il est supprimé dans events.ts)
 
         if (test) { // Dans une condition, une chaine de caractères vide vaut true
             try { // Dans un try/catch, il exécute le code dans la partie catch si celui dans le try a planté quelque part

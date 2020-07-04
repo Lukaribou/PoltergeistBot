@@ -1,5 +1,5 @@
 import { Command, CommandParams, EMOJIS } from "../utils/structs";
-import { GuildChannel, Message } from "discord.js";
+import { GuildChannel, Message, Collection } from "discord.js";
 import { isBotAdmin } from "../utils/functions";
 
 export default class ClearCommand extends Command {
@@ -23,18 +23,20 @@ export default class ClearCommand extends Command {
         var compteur: number = 0;
         var mes: Message[] = null;
         do {
-            mes = (await args.message.channel.messages.fetch({ limit: 100 }).catch())
+            mes = (await args.message.channel.messages.fetch({ limit: 100 })
+                .catch(() => new Collection<string, Message>()))
                 .filter(m => !m.pinned && !isOlder14Days(m))
                 .array(); // On enlève les messages épinglés de la liste et ceux vieux de + de 2 semaines
             if (args.args[0] !== 'all'
                 && (parseInt(args.args[0]) - compteur < 100)) mes = mes.slice(0, parseInt(args.args[0]) - compteur);
             if (mes.length === 0) break;
-            args.message.channel.bulkDelete(mes, true).catch()
-                .then(x => compteur += x.size); // Le bulkDelete n'accepte pas plus de 100 messages à supprimer
+            args.message.channel.bulkDelete(mes, true)
+                .then(x => compteur += x.size) // Le bulkDelete n'accepte pas plus de 100 messages à supprimer
+                .catch(() => { })
         } while (mes.length !== 0);
         args.message.channel.send(`${EMOJIS.OKEMOJI} **${compteur} messages ont été supprimés. Les messages de plus de 14 jours ne peuvent pas être supprimés avec le bot.**`)
-            .catch()
-            .then(m => setTimeout(() => m.delete().catch(), 2500)); // On supprime le message au bout de 5 secondes
+            .then(m => setTimeout(() => m.delete().catch(() => { }), 2500))
+            .catch(() => {}); // On supprime le message au bout de 5 secondes
     };
 };
 

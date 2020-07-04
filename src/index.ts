@@ -70,24 +70,28 @@ scheduleJob('0 0 0 * * *', () => {
 
             if (categ) {
                 var liste: string[] = [];
-                
+
                 categ.children
                     .filter((c: TextChannel) => daysBetween(c.createdTimestamp) > 7) // Salons vieux +7j
                     .forEach(async (c: TextChannel) => {
-                        if ((await c.messages.fetch({ limit: 1 }).catch()).size === 0) {// => 0 message
-                            c.delete('[Suppression automatique] - Salon inutilisé').catch();
+                        if ((await c.messages.fetch({ limit: 1 }).catch(() => new Collection)).size === 0) {// => 0 message
+                            c.delete('[Suppression automatique] - Salon inutilisé').catch(() => { });
                             liste.push(c.name);
                         }
                     });
 
-                if ((await categ.fetch().catch()).children.size === 0) { // Tous les salons ont été supprimés
-                    categ.delete('[Suppression automatique] - 0 salon').catch(); // On supprime aussi la catégorie
-                    gm.user.send(`${EMOJIS.WARNINGEMOJI} [__Message automatique__] - Votre catégorie et ses salons ont été **supprimés** de \`${categ.guild.name}\` car vous ne les avez **jamais utilisés**.`).catch();
-                    return;
-                }
+                categ.fetch()
+                    .then((c) => {
+                        if (c.children.size === 0) {
+                            categ.delete('[Suppression automatique] - 0 salon').catch(() => { }); // On supprime aussi la catégorie
+                            gm.user.send(`${EMOJIS.WARNINGEMOJI} [__Message automatique__] - Votre catégorie et ses salons ont été **supprimés** de \`${categ.guild.name}\` car vous ne les avez **jamais utilisés**.`).catch(() => { });
+                            return;
+                        }
+                    })
+                    .catch(() => {})
 
                 if (liste.length !== 0) // Salons supprimés mais pas tous
-                    gm.user.send(`${EMOJIS.WARNINGEMOJI} [__Message automatique__] - Le(s) salon(s) "\`${liste.join('`, `')}\`" a/ont été **supprimé(s)** de votre catégorie sur \`${categ.guild.name}\` car vous ne les avez **jamais utilisés.**`).catch();
+                    gm.user.send(`${EMOJIS.WARNINGEMOJI} [__Message automatique__] - Le(s) salon(s) "\`${liste.join('`, `')}\`" a/ont été **supprimé(s)** de votre catégorie sur \`${categ.guild.name}\` car vous ne les avez **jamais utilisés.**`).catch(() => { });
             }
         });
 });
