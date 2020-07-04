@@ -87,7 +87,7 @@ export async function onGuildMemberJoin(member: GuildMember): Promise<void> { //
     const emf = (e: string): EmojiResolvable => isNaN(parseInt(e)) ? e : bot.emojis.cache.get(e);
     // Façon de déclarer une fonction sur une ligne | opérateur ternaire =   condition ? true : false
 
-    updateStatus();
+    member.roles.add('717099769322930176');
 
     let em: MessageEmbed = new MessageEmbed()
         .setColor(0x0000FF)
@@ -195,6 +195,8 @@ export async function onGuildMemberJoin(member: GuildMember): Promise<void> { //
         });
     // Si il y a une erreur c'est sûrement que le bot n'arrive pas à envoyer un MP à la personne
     // <TextChannel> me permet de caster (changer le type)
+
+    updateStatus();
 }
 
 export async function onGuildMemberLeft(member: GuildMember): Promise<void> {
