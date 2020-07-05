@@ -1,13 +1,25 @@
 import { bot } from './index';
-import { Message, GuildMember, MessageEmbed, TextChannel, MessageReaction, EmojiResolvable, Collection, User, CategoryChannel, ReactionCollector } from 'discord.js';
-import { Command, botsListDb, EMOJIS, mutedRole } from './utils/structs';
+import { Message, GuildMember, MessageEmbed, TextChannel, MessageReaction, EmojiResolvable, Collection, User, CategoryChannel, ReactionCollector, Guild, Invite } from 'discord.js';
+import { Command, botsListDb, EMOJIS, mutedRole, welcomeChannel } from './utils/structs';
 import { getMemberCategory } from './utils/functions';
 
+const guildInvites = new Map<string, Collection<string, Invite>>();
+
+export async function onInviteCreate(invite: Invite): Promise<void> {
+    guildInvites.set(invite.guild.id, await invite.guild.fetchInvites());
+}
+
 export function onReady(): void {
-    (<TextChannel>bot.guilds.cache.first().channels.cache.get("712578364577153024")).messages.fetch("712580174360739871").catch(() => {})
+    (<TextChannel>bot.guilds.cache.first().channels.cache.get("712578364577153024")).messages.fetch("712580174360739871").catch(() => { })
     console.log(`Connecté sur ${bot.guilds.cache.first()}, ${bot.guilds.cache.first().memberCount} membres et ${bot.guilds.cache.first().channels.cache.size} salons.`);
     updateStatus();
-};
+
+    bot.guilds.cache.forEach((guild: Guild) => {
+        guild.fetchInvites()
+            .then((inv) => guildInvites.set(guild.id, inv))
+            .catch((err) => console.log(err));
+    });
+}
 
 // async + Promise<void> = fonction asynchrone (async: où on peut attendre qlq chose avec await) qui ne retourne rien (void)
 export async function onMessage(message: Message): Promise<void> {
@@ -40,17 +52,17 @@ export async function onMessage(message: Message): Promise<void> {
                                 && !m.user.bot
                                 && m.user.presence.status !== "offline"
                                 && m.id !== bot.config.ownerId)
-                            .forEach(m => m.user.send(`${message.author} **(Pseudo: \`${message.author.username}\`, ID: \`${message.author.id}\`) a atteint les 5 warns du système anti-spam !**`).catch(() => {}));
-                        bot.users.cache.get(bot.config.ownerId).send(`${message.author} **(Pseudo: \`${message.author.username}\`, ID: \`${message.author.id}\`) a atteint les 5 warns du système anti-spam !**`).catch(() => {});
+                            .forEach(m => m.user.send(`${message.author} **(Pseudo: \`${message.author.username}\`, ID: \`${message.author.id}\`) a atteint les 5 warns du système anti-spam !**`).catch(() => { }));
+                        bot.users.cache.get(bot.config.ownerId).send(`${message.author} **(Pseudo: \`${message.author.username}\`, ID: \`${message.author.id}\`) a atteint les 5 warns du système anti-spam !**`).catch(() => { });
                         message.channel.send(`${EMOJIS.ADMINSEMOJI} **Un membre du staff a été prévenu.**`);
                         break;
                     case 7:
                         message.member.roles.add(mutedRole, "[Système anti-spam] Palié 4 atteint, sanction automatique.")
                             .then(() => {
                                 message.channel.send(`${EMOJIS.ADMINSEMOJI} ${message.author} **s'est fait mute pour spam.**`);
-                                setTimeout(() => message.member.roles.remove(mutedRole).catch(() => {}), 1.8e6);
+                                setTimeout(() => message.member.roles.remove(mutedRole).catch(() => { }), 1.8e6);
                             })
-                            .catch(() => {});
+                            .catch(() => { });
                         break;
                     default:
                     //
@@ -60,9 +72,9 @@ export async function onMessage(message: Message): Promise<void> {
                 bot.cooldown.warns.set(message.author.id, 1);
                 setTimeout(() => decCooldownWarn(message.author), 2e4)
             }
-            await message.delete().catch(() => {});
+            await message.delete().catch(() => { });
             message.channel.send(`${EMOJIS.WARNINGEMOJI} ${message.author} **Le salon général possède un cooldown de 1 seconde.**`)
-                .then((m) => m.delete({ timeout: 2e3 }).catch(() => {}));
+                .then((m) => m.delete({ timeout: 2e3 }).catch(() => { }));
             return;
         }
     }
@@ -74,8 +86,8 @@ export async function onMessage(message: Message): Promise<void> {
 
     if (bot.commands.has(command) || bot.aliases.has(command)) {
         const comm: Command = bot.commands.get(command) || bot.aliases.get(command);
-        message.delete().catch(() => {});
-        comm.execute({ args: args, message: message, bot: this }).catch(() => {});
+        message.delete().catch(() => { });
+        comm.execute({ args: args, message: message, bot: this }).catch(() => { });
     };
 };
 
@@ -87,7 +99,20 @@ export async function onGuildMemberJoin(member: GuildMember): Promise<void> { //
     const emf = (e: string): EmojiResolvable => isNaN(parseInt(e)) ? e : bot.emojis.cache.get(e);
     // Façon de déclarer une fonction sur une ligne | opérateur ternaire =   condition ? true : false
 
-    member.roles.add('717099769322930176');
+    (async function () {
+        const newInvites = await member.guild.fetchInvites();
+        const cached = guildInvites.get(member.guild.id);
+        guildInvites.set(member.guild.id, newInvites);
+        const usedInvite = newInvites.find((inv) => cached.get(inv.code).uses < inv.uses);
+        const invitesCount = newInvites
+            .filter((i) => i.inviter.id == usedInvite.inviter.id)
+            .reduce((acc: number, inv) => acc + inv.uses, 0);
+
+        (<TextChannel>member.guild.channels.cache.get(welcomeChannel))
+            .send(`${member} a rejoint, invité par **${usedInvite.inviter.tag}** (\`${invitesCount}\` personnes invitées)`);
+    })().catch(() => { });
+
+    member.roles.add('717099769322930176').catch(() => { });
 
     let em: MessageEmbed = new MessageEmbed()
         .setColor(0x0000FF)
@@ -102,10 +127,10 @@ export async function onGuildMemberJoin(member: GuildMember): Promise<void> { //
                 user.id == member.user.id, { time: 3e5 }); // On ne prend que les réactions de l'utilisateur | 3e5 ms = 5 minutes
 
             botsListDb.list.forEach(async (e: [string, string]) =>
-                await msg.react(emf(e[1])).catch(() => {})); // Pour chaque entrée on réagit avec l'émoji donné
+                await msg.react(emf(e[1])).catch(() => { })); // Pour chaque entrée on réagit avec l'émoji donné
 
-            await msg.react(EMOJIS.OKEMOJI).catch(() => {});
-            await msg.react(EMOJIS.XEMOJI).catch(() => {});
+            await msg.react(EMOJIS.OKEMOJI).catch(() => { });
+            await msg.react(EMOJIS.XEMOJI).catch(() => { });
 
             collector.on('collect', (reaction: MessageReaction) => { // Quand une réaction est ajoutée
                 switch (reaction.emoji.name) {
@@ -153,9 +178,9 @@ export async function onGuildMemberJoin(member: GuildMember): Promise<void> { //
                                 ]
                             }).then(c => {
                                 userCategory = c;
-                                member.user.send(`${EMOJIS.OKEMOJI} **Votre catégorie a été créée. ${EMOJIS.WARNINGEMOJI} Le bot détermine quelle catégorie est la votre grâce aux permissions de celles-ci, merci donc de ne pas les modifier.**`).catch(() => {});
+                                member.user.send(`${EMOJIS.OKEMOJI} **Votre catégorie a été créée. ${EMOJIS.WARNINGEMOJI} Le bot détermine quelle catégorie est la votre grâce aux permissions de celles-ci, merci donc de ne pas les modifier.**`).catch(() => { });
                             }).catch(e => {
-                                member.user.send(`${EMOJIS.XEMOJI} **Une erreur est survenue...\nEnvoyez une capture d'écran de ce message à** ${bot.users.cache.get(bot.config.ownerId)}:\`\`\`${e}\`\`\``).catch(() => {});
+                                member.user.send(`${EMOJIS.XEMOJI} **Une erreur est survenue...\nEnvoyez une capture d'écran de ce message à** ${bot.users.cache.get(bot.config.ownerId)}:\`\`\`${e}\`\`\``).catch(() => { });
                                 return;
                             });
 
@@ -171,7 +196,7 @@ export async function onGuildMemberJoin(member: GuildMember): Promise<void> { //
                                     topic: `Salon créé pour ${member}`,
                                     reason: `L'utilisateur ${member.user.username} a choisi ce bot.`,
                                     parent: userCategory // On l'ajoute à la catégorie
-                                }).catch(e => { member.user.send(`${EMOJIS.XEMOJI} **Une erreur est survenue...\nEnvoyez une capture d'écran de ce message à** ${bot.users.cache.get(bot.config.ownerId)}:\`\`\`${e}\`\`\``).catch(() => {}); return; });
+                                }).catch(e => { member.user.send(`${EMOJIS.XEMOJI} **Une erreur est survenue...\nEnvoyez une capture d'écran de ce message à** ${bot.users.cache.get(bot.config.ownerId)}:\`\`\`${e}\`\`\``).catch(() => { }); return; });
                             };
                         });
                         msgContent = `${EMOJIS.OKEMOJI} **Vos salons ont bien été créés. Si vous ne les voyez pas, merci de contacter un administrateur.**`;
@@ -183,12 +208,12 @@ export async function onGuildMemberJoin(member: GuildMember): Promise<void> { //
                         msgContent = `${EMOJIS.WARNINGEMOJI} **Temps imparti de 5 minutes dépassé.**`;
                 };
 
-                msg.channel.send(msgContent).catch(() => {});
-                msg.delete().catch(() => {});
+                msg.channel.send(msgContent).catch(() => { });
+                msg.delete().catch(() => { });
             });
         }).catch(() => {
-            (<TextChannel>member.guild.channels.cache.get('705851074921234432'))
-                .send(`${EMOJIS.WARNINGEMOJI} ${member} **Je n'arrive pas à vous envoyer un message privé. Changez vos paramètres puis faites la commande \`${bot.config.prefix}cbc\` pour que je vous renvoie le message et que vous puissiez choisir vos salons.**`).catch(() => {});
+            (<TextChannel>member.guild.channels.cache.get(welcomeChannel))
+                .send(`${EMOJIS.WARNINGEMOJI} ${member} **Je n'arrive pas à vous envoyer un message privé. Changez vos paramètres puis faites la commande \`${bot.config.prefix}cbc\` pour que je vous renvoie le message et que vous puissiez choisir vos salons.**`).catch(() => { });
             return;
         });
     // Si il y a une erreur c'est sûrement que le bot n'arrive pas à envoyer un MP à la personne
@@ -201,11 +226,10 @@ export async function onGuildMemberLeft(member: GuildMember): Promise<void> {
     if (member.permissions.any(['ADMINISTRATOR', 'MANAGE_CHANNELS', 'MANAGE_ROLES'])) return;
 
     var categ = getMemberCategory(member);
-    console.log(categ)
     if (categ && !categ.name.startsWith('duo -')) {
         categ.children.forEach(child =>
-            child.delete(`Suppression automatique des salons de ${member.user.tag}.`).catch(() => {}));
-        categ.delete(`Suppression automatique des salons de ${member.user.tag}.`).catch(() => {});
+            child.delete(`Suppression automatique des salons de ${member.user.tag}.`).catch(() => { }));
+        categ.delete(`Suppression automatique des salons de ${member.user.tag}.`).catch(() => { });
     };
 
     updateStatus();
@@ -215,14 +239,14 @@ export async function onReactionAdd(reaction: MessageReaction, user: User): Prom
     var em = botsListDb.reactionRoles.list.filter(x => x[1] == reaction.emoji.name)[0]
     if (!reacTest(reaction)
         || bot.guilds.cache.first().member(user).roles.cache.has(em[0])) return;
-    bot.guilds.cache.first().member(user).roles.add(em[0]).catch(() => {});
+    bot.guilds.cache.first().member(user).roles.add(em[0]).catch(() => { });
 }
 
 export async function onReactionRemove(reaction: MessageReaction, user: User): Promise<void> {
     var em = botsListDb.reactionRoles.list.filter(x => x[1] == reaction.emoji.name)[0]
     if (!reacTest(reaction)
         || !bot.guilds.cache.first().member(user).roles.cache.has(em[0])) return;
-    bot.guilds.cache.first().member(user).roles.remove(em[0]).catch(() => {});
+    bot.guilds.cache.first().member(user).roles.remove(em[0]).catch(() => { });
 }
 
 const reacTest = (reaction: MessageReaction) =>

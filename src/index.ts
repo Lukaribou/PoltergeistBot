@@ -1,7 +1,7 @@
 import { Client, Collection, GuildMember, TextChannel, CategoryChannel } from "discord.js";
 import { Command, Config, EMOJIS } from "./utils/structs";
 import { readdir } from "fs";
-import { onReady, onMessage, onGuildMemberJoin, onGuildMemberLeft, updateStatus, onReactionAdd, onReactionRemove } from "./events";
+import { onReady, onMessage, onGuildMemberJoin, onGuildMemberLeft, updateStatus, onReactionAdd, onReactionRemove, onInviteCreate } from "./events";
 import { scheduleJob } from "node-schedule";
 import { getMemberCategory, daysBetween } from "./utils/functions";
 
@@ -28,7 +28,8 @@ export class Poltergeist extends Client { // extends Client = hérite des propri
 
     async run(): Promise<void> {
         this.loadCommands();
-        this.on("ready", onReady)
+        this.on("inviteCreate", onInviteCreate)
+            .on("ready", onReady)
             .on("message", onMessage)
             .on("guildMemberAdd", onGuildMemberJoin)
             .on("guildMemberRemove", onGuildMemberLeft)
@@ -88,7 +89,7 @@ scheduleJob('0 0 0 * * *', () => {
                             return;
                         }
                     })
-                    .catch(() => {})
+                    .catch(() => { })
 
                 if (liste.length !== 0) // Salons supprimés mais pas tous
                     gm.user.send(`${EMOJIS.WARNINGEMOJI} [__Message automatique__] - Le(s) salon(s) "\`${liste.join('`, `')}\`" a/ont été **supprimé(s)** de votre catégorie sur \`${categ.guild.name}\` car vous ne les avez **jamais utilisés.**`).catch(() => { });
