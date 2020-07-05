@@ -2,6 +2,7 @@ import { bot } from './index';
 import { Message, GuildMember, MessageEmbed, TextChannel, MessageReaction, EmojiResolvable, Collection, User, CategoryChannel, ReactionCollector, Guild, Invite } from 'discord.js';
 import { Command, botsListDb, EMOJIS, mutedRole, welcomeChannel } from './utils/structs';
 import { getMemberCategory } from './utils/functions';
+import { Stats } from './utils/stats';
 
 const guildInvites = new Map<string, Collection<string, Invite>>();
 
@@ -79,6 +80,8 @@ export async function onMessage(message: Message): Promise<void> {
         }
     }
 
+    Stats.inc('messages', { msg: message });
+
     if (!message.content.startsWith(bot.prefix)) return; // Si le message ne commence pas par le prefix
 
     const command: string = message.content.split(" ")[0].substring(bot.prefix.length); // exemple: p!eval je suis con => command = test
@@ -98,6 +101,8 @@ export async function onGuildMemberJoin(member: GuildMember): Promise<void> { //
      */
     const emf = (e: string): EmojiResolvable => isNaN(parseInt(e)) ? e : bot.emojis.cache.get(e);
     // Façon de déclarer une fonction sur une ligne | opérateur ternaire =   condition ? true : false
+
+    Stats.inc('members', { user: member.user });
 
     (async function () {
         const newInvites = await member.guild.fetchInvites();
@@ -223,6 +228,8 @@ export async function onGuildMemberJoin(member: GuildMember): Promise<void> { //
 }
 
 export async function onGuildMemberLeft(member: GuildMember): Promise<void> {
+    Stats.dec('members', { user: member.user });
+
     if (member.permissions.any(['ADMINISTRATOR', 'MANAGE_CHANNELS', 'MANAGE_ROLES'])) return;
 
     var categ = getMemberCategory(member);
