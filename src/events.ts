@@ -173,12 +173,16 @@ export async function onGuildMemberJoin(member: GuildMember): Promise<void> { //
                                 reason: `Catégorie inexistante pour création des salons de bots de ${member.user.username}.`,
                                 permissionOverwrites: [
                                     {
-                                        id: member, // Pour l'utilisateur
+                                        id: member.id, // Pour l'utilisateur
                                         allow: ['VIEW_CHANNEL', 'SEND_MESSAGES', 'STREAM', 'USE_VAD', 'PRIORITY_SPEAKER']
                                     },
                                     {
-                                        id: member.guild.roles.everyone, // Pour everyone
+                                        id: member.guild.roles.everyone.id, // Pour everyone
                                         deny: ['VIEW_CHANNEL']
+                                    },
+                                    {
+                                        id: '716714965003927614',
+                                        allow: ['VIEW_CHANNEL', 'SEND_MESSAGES']
                                     }
                                 ]
                             }).then(c => {
