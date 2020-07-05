@@ -1,5 +1,6 @@
 import { Poltergeist } from '../index';
 import { Message, User, GuildChannel } from 'discord.js';
+import { IStats } from './stats';
 
 export abstract class Command {
     abstract name: string;
@@ -22,6 +23,7 @@ interface IBotsList {
 
 export const confdb = require("../../database/config.json");
 export const botsListDb: IBotsList = require("../../database/botsList.json");
+export const statsDb: IStats = require("../../database/stats.json");
 
 export interface CommandParams {
     args: string[]; // Les args c'est le message qu'on coupe à chaque espace
@@ -46,4 +48,5 @@ export enum EMOJIS {
     OWNERONLYEMOJI = "🔐"
 };
 
-export var mutedRole: string = "706783593040445482";
+export const mutedRole: string = "706783593040445482";
+export const welcomeChannel: string = "705851074921234432";
