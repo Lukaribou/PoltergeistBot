@@ -1,5 +1,5 @@
 import { writeFile } from "fs";
-import { User, GuildMember, CategoryChannel, GuildChannel } from "discord.js";
+import { User, GuildMember, CategoryChannel } from "discord.js";
 import { bot } from "..";
 
 /**
