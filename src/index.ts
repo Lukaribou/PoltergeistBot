@@ -1,9 +1,9 @@
 import { Client, Collection, GuildMember, TextChannel, CategoryChannel } from "discord.js";
-import { Command, Config, EMOJIS } from "./utils/structs";
+import { Command, Config, EMOJIS, statsDb } from "./utils/structs";
 import { readdir } from "fs";
 import { onReady, onMessage, onGuildMemberJoin, onGuildMemberLeft, updateStatus, onReactionAdd, onReactionRemove, onInviteCreate } from "./events";
 import { scheduleJob } from "node-schedule";
-import { getMemberCategory, daysBetween } from "./utils/functions";
+import { getMemberCategory, daysBetween, saveDB } from "./utils/functions";
 
 export class Poltergeist extends Client { // extends Client = hérite des propriétés et méthodes de Discord.Client
     // bot
@@ -63,7 +63,7 @@ export class Poltergeist extends Client { // extends Client = hérite des propri
 
 export const bot: Poltergeist = new Poltergeist(new Config());
 
-scheduleJob('0 0 0 * * *', () => {
+scheduleJob('0 0 0 * * *', () => { // Suppression salons inutilisés
     bot.guilds.cache.first().members.cache
         .filter(gm => daysBetween(gm.joinedTimestamp) > 7) // Rejoint +7j
         .forEach(async (gm: GuildMember) => {
@@ -95,4 +95,15 @@ scheduleJob('0 0 0 * * *', () => {
                     gm.user.send(`${EMOJIS.WARNINGEMOJI} [__Message automatique__] - Le(s) salon(s) "\`${liste.join('`, `')}\`" a/ont été **supprimé(s)** de votre catégorie sur \`${categ.guild.name}\` car vous ne les avez **jamais utilisés.**`).catch(() => { });
             }
         });
+});
+
+scheduleJob('0 0 0 1 * *', () => { // Chaque nouveau mois
+    const months = ['Janvier', 'Février', 'Mars', 'Avril', 'Mai', 'Juin', 'Juillet', 'Août', 'Septembre', 'Octobre', 'Novembre', 'Décembre'];
+    statsDb.stats.push({
+        monthName: months[new Date().getMonth()],
+        year: new Date().getFullYear(),
+        members: bot.guilds.cache.first().members.cache.filter(m => !m.user.bot).size,
+        messages: 0
+    });
+    saveDB('stats');
 });
