@@ -4,6 +4,7 @@ import { readdir } from "fs";
 import { onReady, onMessage, onGuildMemberJoin, onGuildMemberLeft, updateStatus, onReactionAdd, onReactionRemove, onInviteCreate } from "./events";
 import { scheduleJob } from "node-schedule";
 import { getMemberCategory, daysBetween, saveDB } from "./utils/functions";
+import { Stats } from "./utils/stats";
 
 export class Poltergeist extends Client { // extends Client = hérite des propriétés et méthodes de Discord.Client
     // bot
@@ -34,8 +35,8 @@ export class Poltergeist extends Client { // extends Client = hérite des propri
             .on("guildMemberAdd", onGuildMemberJoin)
             .on("guildMemberRemove", onGuildMemberLeft)
             .on("error", () => this.run())
-            .on("channelCreate", () => updateStatus)
-            .on("channelDelete", () => updateStatus)
+            .on("channelCreate", () => { updateStatus(); Stats.inc("channels"); })
+            .on("channelDelete", () => { updateStatus(); Stats.dec("channels"); })
             .on("messageReactionAdd", onReactionAdd)
             .on("messageReactionRemove", onReactionRemove);
 
@@ -99,11 +100,13 @@ scheduleJob('0 0 0 * * *', () => { // Suppression salons inutilisés
 
 scheduleJob('0 0 0 1 * *', () => { // Chaque nouveau mois
     const months = ['Janvier', 'Février', 'Mars', 'Avril', 'Mai', 'Juin', 'Juillet', 'Août', 'Septembre', 'Octobre', 'Novembre', 'Décembre'];
+    const guild = bot.guilds.cache.first();
     statsDb.stats.push({
         monthName: months[new Date().getMonth()],
         year: new Date().getFullYear(),
-        members: bot.guilds.cache.first().members.cache.filter(m => !m.user.bot).size,
-        messages: 0
+        members: guild.members.cache.filter(m => !m.user.bot).size,
+        messages: 0,
+        channels: guild.channels.cache.size
     });
     saveDB('stats');
 });

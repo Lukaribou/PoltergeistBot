@@ -8,7 +8,8 @@ interface fnOptions {
 };
 
 type DataName = "members"
-    | "messages";
+    | "messages"
+    | "channels";
 
 export interface IStats {
     stats: IStatsMonth[];
@@ -19,6 +20,7 @@ export interface IStatsMonth {
     year: number;
     members: number;
     messages: number;
+    channels: number;
 }
 
 export class Stats {
@@ -56,7 +58,11 @@ export class Stats {
      * @param newValue Nouvelle valeur du champ
      */
     private static modify(dataName: DataName, newValue: any): void {
-        statsDb.stats.push(statsDb.stats.pop()[dataName] = newValue);
+        statsDb.stats.push((function () {
+            let t = statsDb.stats.pop();
+            t[dataName] = newValue;
+            return t;
+        }()));
         saveDB('stats');
     }
 

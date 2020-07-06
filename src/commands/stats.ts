@@ -28,6 +28,11 @@ export default class StatsCommand extends Command {
                                 data: data.map((v) => (v.messages / 1000).toFixed(2)),
                                 fill: false,
                                 borderColor: '#FF5'
+                            }, {
+                                label: 'Salons',
+                                data: data.map((v) => v.channels),
+                                fill: false,
+                                borderColor: '#00F'
                             }]
                         },
                         options: {
