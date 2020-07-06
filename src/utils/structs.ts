@@ -36,6 +36,7 @@ export class Config {
     ownerId: string = confdb.ownerId;
     adminsId: string[] = confdb.adminsId
     prefix: string = confdb.prefix;
+    dev: boolean = confdb.dev;
 };
 
 export enum EMOJIS {

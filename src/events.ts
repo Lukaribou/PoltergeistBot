@@ -15,6 +15,8 @@ export function onReady(): void {
     console.log(`Connecté sur ${bot.guilds.cache.first()}, ${bot.guilds.cache.first().memberCount} membres et ${bot.guilds.cache.first().channels.cache.size} salons.`);
     updateStatus();
 
+    bot.user.setStatus(bot.config.dev ? 'idle' : 'online');
+
     bot.guilds.cache.forEach((guild: Guild) => {
         guild.fetchInvites()
             .then((inv) => guildInvites.set(guild.id, inv))
