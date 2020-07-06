@@ -13,9 +13,8 @@ export async function onInviteCreate(invite: Invite): Promise<void> {
 export function onReady(): void {
     (<TextChannel>bot.guilds.cache.first().channels.cache.get("712578364577153024")).messages.fetch("712580174360739871").catch(() => { })
     console.log(`Connecté sur ${bot.guilds.cache.first()}, ${bot.guilds.cache.first().memberCount} membres et ${bot.guilds.cache.first().channels.cache.size} salons.`);
-    updateStatus();
 
-    bot.user.setStatus(bot.config.dev ? 'idle' : 'online');
+    updateStatus();
 
     bot.guilds.cache.forEach((guild: Guild) => {
         guild.fetchInvites()
@@ -271,7 +270,7 @@ const reacTest = (reaction: MessageReaction) =>
  * Actualise le statut du bot
  */
 export function updateStatus(): void {
-    bot.user.setActivity(`${bot.config.prefix}help, ${bot.guilds.cache.first().channels.cache.size} salons pour ${bot.guilds.cache.first().memberCount} membres`, { type: "WATCHING" }); // Configurer le "Joue à"
+    bot.user.setActivity(`${bot.config.prefix}help, ${bot.guilds.cache.first().channels.cache.size} salons pour ${bot.guilds.cache.first().memberCount} membres`, { type: "WATCHING",  }); // Configurer le "Joue à"
 }
 
 function decCooldownWarn(u: User) {

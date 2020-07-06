@@ -48,8 +48,12 @@ export class Stats {
     /**
      * Retourne le dernier élément de la bdd stats.json
      */
-    private static getLast(): IStatsMonth {
-        return statsDb.stats[statsDb.stats.length - 1];
+    public static getLast(): IStatsMonth {
+        return this.getFromBack(1);
+    }
+
+    public static getFromBack(i: number): IStatsMonth {
+        return statsDb.stats[statsDb.stats.length - i];
     }
 
     /**
