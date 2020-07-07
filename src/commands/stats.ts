@@ -38,6 +38,6 @@ export default class StatsCommand extends Command {
             .addField('Membres:', ds.members, true)
             .addField('Messages:', ds.messages, true)
             .addField('Salons', ds.channels, true)
-            .setImage(await chart.getUrl()));
+            .setImage(await chart.requestShortUrl()));
     }
 }

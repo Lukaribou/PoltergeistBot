@@ -117,9 +117,10 @@ export class QuickChart {
     }
 
     /**
-     * Génère l'URL
+     * Génère le graphique sans passer par le serveur de quickchart.io
+     * Est soumis à la longueur max d'une URL
      */
-    /*public generateUrl(): string {
+    public generateUrl(): string {
         this.chart = JSON.stringify(this.chart);
 
         const ret = new URL('https://quickchart.io/chart');
@@ -129,8 +130,11 @@ export class QuickChart {
         ret.searchParams.append('bkg', this.bkgColor);
 
         return ret.href;
-    }*/
+    }
 
+    /**
+     * Renvoie les données sous la forme requise par requestShortUrl()
+     */
     private getDatas() {
         return JSON.stringify({
             width: 500,
@@ -141,8 +145,11 @@ export class QuickChart {
         });
     }
 
-
-    public async getUrl(): Promise<string> {
+    /**
+     * Renvoie une URL courte venant de quickchart.io
+     * N'est pas soumis à la longueur max d'une URL
+     */
+    public async requestShortUrl(): Promise<string> {
         return new Promise((resolve, reject) => {
             const req = https.request(options, (res) => {
                 var data = '';
