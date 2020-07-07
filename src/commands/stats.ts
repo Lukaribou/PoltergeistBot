@@ -21,28 +21,20 @@ export default class StatsCommand extends Command {
             .addField('Messages:', ds.messages, true)
             .addField('Salons', ds.channels, true)
             .setImage(new QuickChart()
-                .setConfig({
-                    type: 'line',
-                    data: {
-                        labels: data.map((v) => v.monthName),
-                        datasets: [{
-                            label: 'Membres',
-                            data: data.map((v) => v.members),
-                            fill: false,
-                            borderColor: '#19cf55'
-                        }, {
-                            label: 'Messages (en milliers)',
-                            data: data.map((v) => (v.messages / 1000).toFixed(2)),
-                            fill: false,
-                            borderColor: '#FF5'
-                        }, {
-                            label: 'Salons',
-                            data: data.map((v) => v.channels),
-                            fill: false,
-                            borderColor: '#00F'
-                        }]
-                    }
-                })
+                .setType('line')
+                .setXLabels(data.map((v) => v.monthName))
+                .addData(
+                    'Membres',
+                    data.map((v) => v.members),
+                    { fill: false, borderColor: '#19CF55' })
+                .addData(
+                    'Messages (en milliers)',
+                    data.map((v) => (v.messages / 1000).toFixed(2)),
+                    { fill: false, borderColor: '#FF5' })
+                .addData(
+                    'Salons',
+                    data.map((v) => v.channels),
+                    { fill: false, borderColor: '#00F' })
                 .setTextColor('#FFF')
                 .setBackgroundColor('transparent')
                 .generateUrl()));
