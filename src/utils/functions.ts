@@ -7,10 +7,10 @@ import { bot } from "..";
  * @param dbname Le nom de la base de données (sans le json)
  */
 export function saveDB(dbname: string): void {
-    writeFile(`database/${dbname}.json`, JSON.stringify(require(`../../database/${dbname}.json`), null, 4), (err) => {
+    writeFile(`database/${dbname}.json`, JSON.stringify(require(`../../database/${dbname}.json`), null, 1), (err) => {
         if (err) console.log(err);
     });
-};
+}
 
 /**
  * Renvoie si un utilisateur est un admin du bot ou non
@@ -18,7 +18,7 @@ export function saveDB(dbname: string): void {
  */
 export function isBotAdmin(user: User): boolean {
     return (user.id == bot.config.ownerId || bot.config.adminsId.includes(user.id));
-};
+}
 
 /**
  * Renvoie la catégorie perso de la personne
@@ -42,4 +42,15 @@ export function daysBetween(old: number | Date, youngest: number | Date = Date.n
     if (youngest instanceof Date) youngest = youngest.getMilliseconds();
     if (old instanceof Date) old = old.getMilliseconds();
     return parseInt((youngest / 8.64e7 - old / 8.64e7).toFixed(0));
+}
+
+/**
+ * Renvoie le nombre d'heures entre deux dates
+ * @param old La date la plus vieille
+ * @param newest La date la moins ancienne | Si non spécifié: Date.now()
+ */
+export function hoursBetween(old: number | Date, youngest: number | Date = Date.now()): number {
+    if (youngest instanceof Date) youngest = youngest.getMilliseconds();
+    if (old instanceof Date) old = old.getMilliseconds();
+    return (youngest - old) / 36e5;
 }
