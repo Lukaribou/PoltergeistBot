@@ -1,3 +1,14 @@
+import * as https from "https";
+
+const options = {
+    hostname: 'quickchart.io',
+    path: '/chart/create',
+    method: 'POST',
+    headers: {
+        'Content-Type': 'application/json',
+    }
+}
+
 export class QuickChart {
     chart: any;
     bkgColor: string;
@@ -108,7 +119,7 @@ export class QuickChart {
     /**
      * Génère l'URL
      */
-    public generateUrl(): string {
+    /*public generateUrl(): string {
         this.chart = JSON.stringify(this.chart);
 
         const ret = new URL('https://quickchart.io/chart');
@@ -118,5 +129,29 @@ export class QuickChart {
         ret.searchParams.append('bkg', this.bkgColor);
 
         return ret.href;
+    }*/
+
+    private getDatas() {
+        return JSON.stringify({
+            width: 500,
+            height: 300,
+            backgroundColor: this.bkgColor,
+            format: 'png',
+            chart: this.chart
+        });
+    }
+
+
+    public async getUrl(): Promise<string> {
+        return new Promise((resolve, reject) => {
+            const req = https.request(options, (res) => {
+                var data = '';
+                res.on('data', (d) => data += d)
+                    .on('end', () => resolve(JSON.parse(data).url))
+                    .on('error', (err) => reject(err));
+            });
+            req.write(this.getDatas())
+            req.end();
+        });
     }
 }

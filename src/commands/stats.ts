@@ -13,6 +13,24 @@ export default class StatsCommand extends Command {
         const data = statsDb.stats;
         const ds = Stats.getLast();
 
+        let chart = new QuickChart()
+            .setType('line')
+            .setXLabels(data.map((v) => v.monthName))
+            .addData(
+                'Membres',
+                data.map((v) => v.members),
+                { fill: false, borderColor: '#19CF55' })
+            .addData(
+                'Messages (en milliers)',
+                data.map((v) => (v.messages / 1000).toFixed(2)),
+                { fill: false, borderColor: '#FF5' })
+            .addData(
+                'Salons',
+                data.map((v) => v.channels),
+                { fill: false, borderColor: '#00F' })
+            .setTextColor('#FFF')
+            .setBackgroundColor('transparent');
+
         args.message.channel.send(new MessageEmbed()
             .setAuthor(`Données de ${ds.monthName} ${ds.year} (${data.length} mois enregistrés)`,
                 args.message.guild.iconURL({ dynamic: true }),
@@ -20,23 +38,6 @@ export default class StatsCommand extends Command {
             .addField('Membres:', ds.members, true)
             .addField('Messages:', ds.messages, true)
             .addField('Salons', ds.channels, true)
-            .setImage(new QuickChart()
-                .setType('line')
-                .setXLabels(data.map((v) => v.monthName))
-                .addData(
-                    'Membres',
-                    data.map((v) => v.members),
-                    { fill: false, borderColor: '#19CF55' })
-                .addData(
-                    'Messages (en milliers)',
-                    data.map((v) => (v.messages / 1000).toFixed(2)),
-                    { fill: false, borderColor: '#FF5' })
-                .addData(
-                    'Salons',
-                    data.map((v) => v.channels),
-                    { fill: false, borderColor: '#00F' })
-                .setTextColor('#FFF')
-                .setBackgroundColor('transparent')
-                .generateUrl()));
+            .setImage(await chart.getUrl()));
     }
 }
