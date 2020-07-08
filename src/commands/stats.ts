@@ -13,8 +13,7 @@ export default class StatsCommand extends Command {
         var embed = new MessageEmbed();
         var chart = new QuickChart();
 
-        if (!args.args[0]
-            || ['server', 'serveur'].includes(args.args[0].toLowerCase())) {
+        if (!args.args[0] || ['server', 'serveur'].includes(args.args[0].toLowerCase())) {
             const data = statsDb.monthly;
             const ds = Stats.Monthly.getLast();
 
@@ -43,10 +42,25 @@ export default class StatsCommand extends Command {
             switch (args.args[0].toLowerCase()) {
                 case 'activity':
                 case 'activité':
-                    
+                    let data = Object.keys(statsDb.activity.peoples)
+                        .map(x => [x, statsDb.activity.peoples[x]])
+                        .filter(x => args.bot.users.cache.get(x[0] as string))
+                        .sort((a, b) => b[1].length - a[1].length); // + messages => - messages
+                    data = data.splice(0, (data.length > 5 ? 5 : data.length));
+
+                    chart.createSpecial({
+                        type: 'doughnut',
+                        data: {
+                            labels: data.map((x) => args.bot.users.cache.get(x[0] as string).username),
+                            datasets: [{ data: data.map((x) => x[1].length) }],
+                        },
+                        options: { plugins: { doughnutlabel: { labels: [{ text: data.map((x) => x[1].length).reduce((acc, x) => acc + x), font: { size: 20 } }] } } }
+                    });
+                    embed.setTitle('5 membres les plus actifs des 7 derniers jours')
+                        .setImage(chart.generateUrl());
                     break;
                 default:
-                    const dispos = ['activité/activity', 'server/serveur']
+                    const dispos = ['activité/activity', 'server/serveur'];
                     args.message.channel.send(`${EMOJIS.XEMOJI} **Le graphique \`${args.args[0]}\` m'est inconnu.**\n${EMOJIS.RIGHTARROW} Voici les graphiques disponibles: \`${dispos.join("`, `")}\``);
                     return;
             }

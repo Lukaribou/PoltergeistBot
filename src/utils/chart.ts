@@ -103,6 +103,11 @@ export class QuickChart {
         return this;
     }
 
+    public createSpecial(o: Object): QuickChart {
+        this.chart = o;
+        return this;
+    }
+
     /**
      * Change les options du graphique
      * Ecrase les options

@@ -1,6 +1,7 @@
 import { Message, User } from "discord.js";
 import { statsDb } from "./structs";
-import { saveDB } from "./functions";
+import { saveDB, daysBetween } from "./functions";
+import { bot } from "..";
 
 interface fnOptions {
     msg?: Message,
@@ -42,6 +43,16 @@ export namespace Stats {
             if (!this.check(u)) return;
             if (!this.exist(u)) statsDb.activity.peoples[u.id] = [msg.createdTimestamp];
             else statsDb.activity.peoples[u.id].push(msg.createdTimestamp);
+        }
+
+        public static empty(): void {
+            var d = Date.now();
+            for (let t in statsDb.activity.peoples) {
+                if (!bot.users.cache.get(t)) delete statsDb.activity.peoples[t];
+                else statsDb.activity.peoples[t] = statsDb.activity.peoples[t]
+                    .filter(x => daysBetween(x, d) < 7);
+            }
+            saveDB('stats');
         }
     }
 
