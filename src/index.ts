@@ -76,7 +76,7 @@ scheduleJob('0 0 0 * * *', () => { // Suppression salons inutilisés
                 categ.children
                     .filter((c: TextChannel) => daysBetween(c.createdTimestamp) > 7) // Salons vieux +7j
                     .forEach(async (c: TextChannel) => {
-                        if ((await c.messages.fetch({ limit: 1 }).catch(() => new Collection)).size === 0) {// => 0 message
+                        if ((await c.messages.fetch({ limit: 1 }).catch(() => new Collection())).size === 0) {// => 0 message
                             c.delete('[Suppression automatique] - Salon inutilisé').catch(() => { });
                             liste.push(c.name);
                         }
@@ -90,7 +90,7 @@ scheduleJob('0 0 0 * * *', () => { // Suppression salons inutilisés
                             return;
                         }
                     })
-                    .catch(() => { })
+                    .catch(() => { });
 
                 if (liste.length !== 0) // Salons supprimés mais pas tous
                     gm.user.send(`${EMOJIS.WARNINGEMOJI} [__Message automatique__] - Le(s) salon(s) "\`${liste.join('`, `')}\`" a/ont été **supprimé(s)** de votre catégorie sur \`${categ.guild.name}\` car vous ne les avez **jamais utilisés.**`).catch(() => { });
