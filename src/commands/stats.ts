@@ -10,8 +10,8 @@ export default class StatsCommand extends Command {
     categorie = 'Informations';
 
     async execute(args: CommandParams): Promise<void> {
-        const data = statsDb.stats;
-        const ds = Stats.getLast();
+        const data = statsDb.monthly;
+        const ds = Stats.Monthly.getLast();
 
         let chart = new QuickChart()
             .setType('line')

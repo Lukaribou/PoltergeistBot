@@ -25,12 +25,12 @@ export function isBotAdmin(user: User): boolean {
  * @param member Le membre
  */
 export function getMemberCategory(member: GuildMember): CategoryChannel {
-    return member.hasPermission(['ADMINISTRATOR', 'MANAGE_CHANNELS', 'MANAGE_ROLES']) ?
-        null : member.guild.channels.cache.filter(c => c.type === 'category'
-            && c.permissionsFor(member)
-            && c.permissionsFor(member).has(['VIEW_CHANNEL', 'SEND_MESSAGES', 'STREAM', 'USE_VAD', 'PRIORITY_SPEAKER'])
-            && !c.permissionsFor(member.guild.roles.everyone).has('VIEW_CHANNEL'))
-            .first() as CategoryChannel;
+    if (member.hasPermission(['ADMINISTRATOR', 'MANAGE_CHANNELS', 'MANAGE_ROLES'])) return null;
+    else return member.guild.channels.cache.filter(c => c.type === 'category'
+        && c.permissionsFor(member)
+        && c.permissionsFor(member).has(['VIEW_CHANNEL', 'SEND_MESSAGES', 'STREAM', 'USE_VAD', 'PRIORITY_SPEAKER'])
+        && !c.permissionsFor(member.guild.roles.everyone).has('VIEW_CHANNEL'))
+        .first() as CategoryChannel;
 }
 
 /**

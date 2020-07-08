@@ -81,7 +81,8 @@ export async function onMessage(message: Message): Promise<void> {
         }
     }
 
-    Stats.inc('messages', { msg: message });
+    Stats.Monthly.inc('messages', { msg: message });
+    Stats.Activity.add(message.author, message);
 
     if (!message.content.startsWith(bot.prefix)) return; // Si le message ne commence pas par le prefix
 
@@ -103,7 +104,7 @@ export async function onGuildMemberJoin(member: GuildMember): Promise<void> { //
     const emf = (e: string): EmojiResolvable => isNaN(parseInt(e)) ? e : bot.emojis.cache.get(e);
     // Façon de déclarer une fonction sur une ligne | opérateur ternaire =   condition ? true : false
 
-    Stats.inc('members', { user: member.user });
+    Stats.Monthly.inc('members', { user: member.user });
 
     (async function () {
         const newInvites = await member.guild.fetchInvites();
@@ -162,11 +163,7 @@ export async function onGuildMemberJoin(member: GuildMember): Promise<void> { //
                         msgContent.concat(`${EMOJIS.OKEMOJI} **Je vais vous créer les salons pour les bots:**`);
                         collected.delete(EMOJIS.OKEMOJI); // On retire le OK
 
-                        var userCategory: CategoryChannel = <CategoryChannel>member.guild.channels.cache
-                            .filter(c => c.type == 'category'
-                                && !c.permissionsFor(member.guild.roles.everyone).has("VIEW_CHANNEL")
-                                && c.permissionsFor(member).has(["STREAM", "USE_VAD", "PRIORITY_SPEAKER"]))
-                            .first(); // On filtre les salons en gardant que les catégories
+                        var userCategory: CategoryChannel = getMemberCategory(member);
 
                         if (!userCategory)
                             await member.guild.channels.create(member.user.username, { // Si il n'a pas de catégorie on la crée
@@ -174,11 +171,11 @@ export async function onGuildMemberJoin(member: GuildMember): Promise<void> { //
                                 reason: `Catégorie inexistante pour création des salons de bots de ${member.user.username}.`,
                                 permissionOverwrites: [
                                     {
-                                        id: member.id, // Pour l'utilisateur
+                                        id: member, // Pour l'utilisateur
                                         allow: ['VIEW_CHANNEL', 'SEND_MESSAGES', 'STREAM', 'USE_VAD', 'PRIORITY_SPEAKER']
                                     },
                                     {
-                                        id: member.guild.roles.everyone.id, // Pour everyone
+                                        id: member.guild.roles.everyone, // Pour everyone
                                         deny: ['VIEW_CHANNEL']
                                     },
                                     {
@@ -233,15 +230,16 @@ export async function onGuildMemberJoin(member: GuildMember): Promise<void> { //
 }
 
 export async function onGuildMemberLeft(member: GuildMember): Promise<void> {
-    Stats.dec('members', { user: member.user });
+    Stats.Monthly.dec('members', { user: member.user });
 
     if (member.permissions.any(['ADMINISTRATOR', 'MANAGE_CHANNELS', 'MANAGE_ROLES'])) return;
 
     var categ = getMemberCategory(member);
     if (categ && !categ.name.startsWith('duo -')) {
-        categ.children.forEach(child =>
-            child.delete(`Suppression automatique des salons de ${member.user.tag}.`).catch(() => { }));
-        categ.delete(`Suppression automatique des salons de ${member.user.tag}.`).catch(() => { });
+        categ.children.forEach(async (child) => await child.delete(`Suppression automatique des salons de ${member.user.tag}.`)
+            .catch(() => { }));
+        categ.delete(`Suppression automatique des salons de ${member.user.tag}.`)
+            .catch(() => { });
     };
 
     updateStatus();
@@ -270,7 +268,7 @@ const reacTest = (reaction: MessageReaction) =>
  * Actualise le statut du bot
  */
 export function updateStatus(): void {
-    bot.user.setActivity(`${bot.config.prefix}help, ${bot.guilds.cache.first().channels.cache.size} salons pour ${bot.guilds.cache.first().memberCount} membres`, { type: "WATCHING",  }); // Configurer le "Joue à"
+    bot.user.setActivity(`${bot.config.prefix}help, ${bot.guilds.cache.first().channels.cache.size} salons pour ${bot.guilds.cache.first().memberCount} membres`, { type: "WATCHING", }); // Configurer le "Joue à"
 }
 
 function decCooldownWarn(u: User) {
