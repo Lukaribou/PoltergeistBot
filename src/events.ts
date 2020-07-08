@@ -104,6 +104,8 @@ export async function onGuildMemberJoin(member: GuildMember): Promise<void> { //
     const emf = (e: string): EmojiResolvable => isNaN(parseInt(e)) ? e : bot.emojis.cache.get(e);
     // Façon de déclarer une fonction sur une ligne | opérateur ternaire =   condition ? true : false
 
+    if (member.user.bot) return;
+
     Stats.Monthly.inc('members', { user: member.user });
 
     (async function () {
