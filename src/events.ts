@@ -84,9 +84,9 @@ export async function onMessage(message: Message): Promise<void> {
     Stats.Monthly.inc('messages', { msg: message });
     Stats.Activity.add(message.author, message);
 
-    if (!message.content.startsWith(bot.prefix)) return; // Si le message ne commence pas par le prefix
+    if (!message.content.toLowerCase().startsWith(bot.prefix)) return; // Si le message ne commence pas par le prefix
 
-    const command: string = message.content.split(" ")[0].substring(bot.prefix.length); // exemple: p!eval je suis con => command = test
+    const command: string = message.content.split(" ")[0].substring(bot.prefix.length).toLowerCase(); // exemple: p!eval je suis con => command = test
     const args: string[] = message.content.split(" ").slice(1); // exemple: p!eval je suis con => args = ["je", "suis", "con"]
 
     if (bot.commands.has(command) || bot.aliases.has(command)) {
