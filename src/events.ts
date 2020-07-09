@@ -81,6 +81,12 @@ export async function onMessage(message: Message): Promise<void> {
         }
     }
 
+    if (message.content.includes('discord.gg/')) {
+        message.delete({ reason: 'Comporte une invitation Discord' }).catch(() => { });
+        message.channel.send(`${EMOJIS.ADMINSEMOJI} **Les invitations Discord sont interdites sur le serveur.**`);
+        return;
+    }
+
     Stats.Monthly.inc('messages', { msg: message });
     Stats.Activity.add(message.author, message);
 
