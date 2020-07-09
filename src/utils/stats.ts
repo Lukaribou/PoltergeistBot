@@ -31,8 +31,11 @@ export interface IStatsMonth {
 
 export namespace Stats {
     export class Activity {
-        private static check(u: User): boolean {
-            return !u.bot;
+        private static check(u: User, msg: Message): boolean {
+            return !u.bot
+                && [ // ID des salons acceptés
+                    '705850506412556288', '727978513554210877', '714121901257261137', '714414656860717068', '714121927676919850'
+                ].includes(msg.channel.id);
         }
 
         public static exist(u: User): boolean {
@@ -40,7 +43,7 @@ export namespace Stats {
         }
 
         public static add(u: User, msg: Message): void {
-            if (!this.check(u)) return;
+            if (!this.check(u, msg)) return;
             if (!this.exist(u)) statsDb.activity.peoples[u.id] = [msg.createdTimestamp];
             else statsDb.activity.peoples[u.id].push(msg.createdTimestamp);
         }
@@ -117,6 +120,18 @@ export namespace Stats {
                 t[dataName] = newValue;
                 return t;
             }()));
+        }
+
+        public static update(): void {
+            this.modify('channels', bot.guilds.cache.first().channels.cache.size);
+            this.modify('members', bot.guilds.cache.first().members.cache.filter(m => !m.user.bot).size);
+        }
+    }
+
+    export class All {
+        public static update(): void {
+            Monthly.update();
+            Activity.empty();
         }
     }
 }

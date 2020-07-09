@@ -96,8 +96,8 @@ scheduleJob('0 0 0 * * *', () => { // Suppression salons inutilisés
                     gm.user.send(`${EMOJIS.WARNINGEMOJI} [__Message automatique__] - Le(s) salon(s) "\`${liste.join('`, `')}\`" a/ont été **supprimé(s)** de votre catégorie sur \`${categ.guild.name}\` car vous ne les avez **jamais utilisés.**`).catch(() => { });
             }
         });
-        
-    Stats.Activity.empty();
+
+    setTimeout(() => Stats.All.update(), 30e3);
 });
 
 scheduleJob('0 0 0 1 * *', () => { // Chaque nouveau mois
