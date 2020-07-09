@@ -47,6 +47,9 @@ export default class StatsCommand extends Command {
                         .map(x => [x, statsDb.activity.peoples[x]])
                         .filter(x => args.bot.users.cache.get(x[0] as string))
                         .sort((a, b) => b[1].length - a[1].length); // + messages => - messages
+
+                    let total = data.map((x) => x[1].length).reduce((acc, n) => acc + n);
+
                     data = data.splice(0, (data.length > 5 ? 5 : data.length));
 
                     chart.createSpecial({
@@ -55,7 +58,7 @@ export default class StatsCommand extends Command {
                             labels: data.map((x) => args.bot.users.cache.get(x[0] as string).username),
                             datasets: [{ data: data.map((x) => x[1].length) }],
                         },
-                        options: { plugins: { datalabels: { display: true, backgroundColor: '#FFF', borderRadius: 5 }, doughnutlabel: { labels: [{ text: data.map((x) => x[1].length).reduce((acc, x) => acc + x), font: { size: 20, weight: 'bold' } }] } } }
+                        options: { plugins: { datalabels: { display: true, backgroundColor: '#FFF', borderRadius: 5 }, doughnutlabel: { labels: [{ text: total, font: { size: 20, weight: 'bold' } }, {text: 'messages'}, {text: 'au total'}] } } }
                     });
                     embed.setTitle('Les 5 membres les plus actifs des 7 derniers jours\n(En nombres de messages)')
                         .setImage(chart.generateUrl());
@@ -79,7 +82,7 @@ export default class StatsCommand extends Command {
                     return;
                 default:
                     const dispos = ['activité/activity', 'server/serveur'];
-                    args.message.channel.send(`${EMOJIS.XEMOJI} **Le graphique \`${args.args[0]}\` m'est inconnu.**\n${EMOJIS.RIGHTARROW} Voici les graphiques disponibles: \`${dispos.join("`, `")}\`\n\`update\` permet de mettre à jour des stats.`);
+                    args.message.channel.send(`${EMOJIS.XEMOJI} **Le graphique \`${args.args[0]}\` m'est inconnu.**\n${EMOJIS.RIGHTARROW} Voici les graphiques disponibles: \`${dispos.join("`, `")}\`\n${EMOJIS.ADMINSEMOJI} \`update\` permet de mettre à jour des stats.`);
                     return;
             }
         }
