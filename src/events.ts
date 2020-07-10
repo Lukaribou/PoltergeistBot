@@ -81,7 +81,7 @@ export async function onMessage(message: Message): Promise<void> {
         }
     }
 
-    if (message.content.includes('discord.gg/')) {
+    if (message.content.includes('discord.gg/') && !message.member.hasPermission('ADMINISTRATOR')) {
         message.delete({ reason: 'Comporte une invitation Discord' }).catch(() => { });
         message.channel.send(`${EMOJIS.ADMINSEMOJI} **Les invitations Discord sont interdites sur le serveur.**`);
         return;
