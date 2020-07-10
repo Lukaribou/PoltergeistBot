@@ -2,6 +2,4 @@ config.json
 /node_modules
 /out
 stats copy.json
-const.py
-*.xml
-*.iml
+const.go
