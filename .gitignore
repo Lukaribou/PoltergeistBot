@@ -3,3 +3,4 @@ config.json
 /out
 stats copy.json
 const.py
+*.pem
