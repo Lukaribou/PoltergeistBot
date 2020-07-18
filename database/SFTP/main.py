@@ -1,3 +1,12 @@
+import os
+
+conn = None
+
+
+# On change de répertoire
+os.chdir("E:\\Pour_Discord\\PoltergeistBot\\database\\SFTP")
+
+
 def connect():
     import paramiko
     from const import HOST, ID, PASSWORD, PORT
@@ -13,9 +22,6 @@ def connect():
     return sftp
 
 
-conn = connect()
-
-
 def reverse_string(s: str) -> str:
     return s[::-1]
 
@@ -29,7 +35,7 @@ def format_name(file_name: str, overwrite: bool, p: bool = False) -> str:
         ext, name = reverse_string(file_name).split('.', 1)
         ext, name = reverse_string(ext), reverse_string(name)
         n = f'../{name} copy.{ext}'
-    elif not overwrite and path.exists(f'./{file_name}'):
+    elif not overwrite and path.exists(f'../{file_name}'):
         ext, name = reverse_string(file_name).split('.', 1)
         ext, name = reverse_string(ext), reverse_string(name)
         n = f'../{name} copy.{ext}'
@@ -56,11 +62,12 @@ if __name__ == '__main__':
         print("python main.py [ecraser (True/False)] [put/get] [fichier]")
         exit(1)
 
-    if len(argv) == 2 or len(argv) == 3 \
+    if len(argv) in [1, 2, 3] \
             or (argv[2] not in ['put', 'get']) \
             or (argv[1] not in ['True', 'False']):
         pr_msg()
     else:
+        conn = connect()
         for el in argv[3:]:
             if argv[2] == 'put':
                 put_in(el, argv[1] == "True")
