@@ -4,3 +4,4 @@ config.json
 stats copy.json
 const.py
 *.pem
+*.exe
