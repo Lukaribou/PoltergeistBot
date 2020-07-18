@@ -46,13 +46,13 @@ def format_name(file_name: str, overwrite: bool, p: bool = False) -> str:
 def put_in(file_name: str, overwrite: bool):
     name = format_name(file_name, overwrite, p=True)
     conn.put(file_name, name)
-    print(f"Export de \"{file_name}\" réussi")
+    print(f"Export de \"{file_name}\" reussi")
 
 
 def get_from(file_name: str, overwrite: bool):
     name = format_name(file_name, overwrite)
     conn.get(file_name, name)
-    print(f"Import de \"{file_name}\" réussi")
+    print(f"Import de \"{file_name}\" reussi")
 
 
 if __name__ == '__main__':
