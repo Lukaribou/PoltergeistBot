@@ -53,7 +53,7 @@ if __name__ == '__main__':
     from sys import argv, exit
 
     def pr_msg():
-        print("python main.py [ecraser (true/false)] [put/get] [fichier]")
+        print("python main.py [ecraser (True/False)] [put/get] [fichier]")
         exit(1)
 
     if len(argv) == 2 or len(argv) == 3 \
