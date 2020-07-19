@@ -8,57 +8,74 @@ import (
 	"strings"
 )
 
+var (
+	sc *bufio.Scanner
+)
+
 func main() {
 	fmt.Println("****************************************************")
 	fmt.Println("*** Automatisation import/export base de données ***")
 	fmt.Println("****************************************************")
 
-	p := askParameters()
+	sc = bufio.NewScanner(os.Stdin)
 
 	c := exec.Command(
 		"cmd",
 		"/C",
 		"py",
 		"E:\\Pour_Discord\\PoltergeistBot\\database\\SFTP\\main.py")
-	c.Args = append(c.Args, p...)
-	x, err := c.CombinedOutput()
+	c.Args = append(c.Args, askParameters()...)
+	out, err := c.CombinedOutput()
+
+	fmt.Printf(`
+	
+-----------------------
+Script Python:
+
+%s
+-----------------------
+
+
+`,
+		string(out))
+
 	checkAndPanic(err)
-	fmt.Println(string(x))
 }
 
 func askParameters() []string {
-	params := make([]string, 3)
-	input := bufio.NewScanner(os.Stdin)
+	params := []string{}
 
-	fmt.Println("\nLe programme doit-il écraser le fichier si il est existant (y/n):")
-	input.Scan()
-	panicBadInput(input.Text(), []string{"y", "n"})
-	params = append(params, input.Text())
+	params = append(params,
+		ask("\nLe programme doit-il écraser le fichier si il est existant (y/n):", []string{"y", "n"}),
+		ask("\nRentrez le mode que vous souhaitez exécuter (get/put):", []string{"get", "put"}),
+		ask("\nRentrez tous les fichiers qui doivent être importés/exportés:", []string{}))
 
-	fmt.Println("\nRentrez le mode que vous souhaitez exécuter (get/put):")
-	input.Scan()
-	panicBadInput(input.Text(), []string{"get", "put"})
-	params = append(params, input.Text())
-
-	fmt.Println("\nRentrez tous les fichiers qui doivent être importés/exportés:")
-	input.Scan()
-	params = append(params, input.Text())
-
-	temp := ""
-
+	temp := []string{}
 	for _, x := range params {
-		if x != " " {
-			if x == "y" {
-				x = "True"
-			} else if x == "n" {
-				x = "False"
-			}
-			temp += " " + x
+		x = strings.TrimSpace(x)
+		if x == "" || x == " " {
+			continue
+		} else if x == "y" {
+			x = "True"
+		} else if x == "n" {
+			x = "False"
+		}
+		temp = append(temp, x)
+	}
+	return temp
+}
+
+func ask(q string, cI []string) string {
+	var r string
+	for true {
+		fmt.Println(q)
+		sc.Scan()
+		r = strings.ToLower(strings.TrimSpace(sc.Text()))
+		if len(cI) == 0 || arrayContains(cI, r) {
+			break
 		}
 	}
-
-	temp = strings.ReplaceAll(temp, "  ", " ")
-	return strings.Split(temp[2:], " ")
+	return r
 }
 
 func arrayContains(arr []string, str string) bool {
@@ -68,12 +85,6 @@ func arrayContains(arr []string, str string) bool {
 		}
 	}
 	return false
-}
-
-func panicBadInput(input string, correctsInput []string) {
-	if !arrayContains(correctsInput, strings.ToLower(input)) {
-		panic("Le paramètre donné n'est pas dans les réponses possibles")
-	}
 }
 
 func checkAndPanic(err error) {
