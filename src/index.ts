@@ -3,7 +3,7 @@ import { Command, Config, EMOJIS, statsDb } from "./utils/structs";
 import { readdir } from "fs";
 import { onReady, onMessage, onGuildMemberJoin, onGuildMemberLeft, updateStatus, onReactionAdd, onReactionRemove, onInviteCreate } from "./events";
 import { Stats } from "./utils/stats";
-import { daysBetween, getMemberCategory, saveDB } from "./utils/functions";
+import { daysBetween, getMemberCategory, saveDB, sendDM } from "./utils/functions";
 import { scheduleJob } from "node-schedule";
 
 export class Poltergeist extends Client { // extends Client = hérite des propriétés et méthodes de Discord.Client
@@ -86,14 +86,14 @@ scheduleJob('0 0 0 * * *', () => { // Suppression salons inutilisés
                     .then((c) => {
                         if (c.children.size === 0) {
                             categ.delete('[Suppression automatique] - 0 salon').catch(() => { }); // On supprime aussi la catégorie
-                            gm.user.send(`${EMOJIS.WARNINGEMOJI} [__Message automatique__] - Votre catégorie et ses salons ont été **supprimés** de \`${categ.guild.name}\` car vous ne les avez **jamais utilisés**.`).catch(() => { });
+                            sendDM(gm, `${EMOJIS.WARNINGEMOJI} [__Message automatique__] - Votre catégorie et ses salons ont été **supprimés** de \`${categ.guild.name}\` car vous ne les avez **jamais utilisés**.`).catch(() => { });
                             return;
                         }
                     })
                     .catch(() => { });
 
                 if (liste.length !== 0) // Salons supprimés mais pas tous
-                    gm.user.send(`${EMOJIS.WARNINGEMOJI} [__Message automatique__] - Le(s) salon(s) "\`${liste.join('`, `')}\`" a/ont été **supprimé(s)** de votre catégorie sur \`${categ.guild.name}\` car vous ne les avez **jamais utilisés.**`).catch(() => { });
+                    sendDM(gm, `${EMOJIS.WARNINGEMOJI} [__Message automatique__] - Le(s) salon(s) "\`${liste.join('`, `')}\`" a/ont été **supprimé(s)** de votre catégorie sur \`${categ.guild.name}\` car vous ne les avez **jamais utilisés.**`).catch(() => { });
             }
         });
 
@@ -114,5 +114,5 @@ scheduleJob('0 0 0 1 * *', () => { // Chaque nouveau mois
 });
 
 scheduleJob('*/1 * * * *', () => { // Toutes les minutes
-    saveDB('stats')
+    saveDB('stats');
 });

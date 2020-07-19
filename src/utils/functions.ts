@@ -1,5 +1,5 @@
 import { writeFile } from "fs";
-import { User, GuildMember, CategoryChannel } from "discord.js";
+import { User, GuildMember, CategoryChannel, Message } from "discord.js";
 import { bot } from "..";
 
 /**
@@ -53,4 +53,20 @@ export function hoursBetween(old: number | Date, youngest: number | Date = Date.
     if (youngest instanceof Date) youngest = youngest.getMilliseconds();
     if (old instanceof Date) old = old.getMilliseconds();
     return (youngest - old) / 36e5;
+}
+
+/**
+ * Crée un salon DM si besoin et y envoie le message
+ * @param u L'utilisateur | son id
+ * @param msg Le contenu du message
+ */
+export function sendDM(u: User | GuildMember | string, msg: any): Promise<Message> {
+    return new Promise(async (res, rej) => {
+        if (u instanceof GuildMember) u = u.user;
+        else if (typeof u === 'string') u = bot.users.cache.get(u);
+        
+        if (typeof u === 'undefined') rej("Utilisateur non trouvé");
+        if (!u.dmChannel) await u.createDM();
+        res(await u.dmChannel.send(msg));
+    })
 }

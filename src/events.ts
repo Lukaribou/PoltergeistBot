@@ -1,7 +1,7 @@
 import { bot } from './index';
 import { Message, GuildMember, MessageEmbed, TextChannel, MessageReaction, EmojiResolvable, Collection, User, CategoryChannel, ReactionCollector, Guild, Invite } from 'discord.js';
 import { Command, botsListDb, EMOJIS, mutedRole, welcomeChannel } from './utils/structs';
-import { getMemberCategory } from './utils/functions';
+import { getMemberCategory, sendDM } from './utils/functions';
 import { Stats } from './utils/stats';
 
 const guildInvites = new Map<string, Collection<string, Invite>>();
@@ -11,7 +11,9 @@ export async function onInviteCreate(invite: Invite): Promise<void> {
 }
 
 export function onReady(): void {
-    (<TextChannel>bot.guilds.cache.first().channels.cache.get("712578364577153024")).messages.fetch("712580174360739871").catch(() => { })
+    (<TextChannel>bot.guilds.cache.first().channels.cache
+        .get("712578364577153024")).messages.fetch("712580174360739871")
+        .catch(() => { });
     console.log(`Connecté sur ${bot.guilds.cache.first()}, ${bot.guilds.cache.first().memberCount} membres et ${bot.guilds.cache.first().channels.cache.size} salons.`);
 
     updateStatus();
@@ -23,7 +25,6 @@ export function onReady(): void {
     });
 }
 
-// async + Promise<void> = fonction asynchrone (async: où on peut attendre qlq chose avec await) qui ne retourne rien (void)
 export async function onMessage(message: Message): Promise<void> {
     if (message.author.bot
         || !["text", "news", "shop"].includes(message.channel.type)) return;
@@ -39,11 +40,14 @@ export async function onMessage(message: Message): Promise<void> {
         if (!bot.cooldown.fast.includes(message.author.id)) {
             bot.cooldown.fast.push(message.author.id);
             setTimeout(() =>
-                bot.cooldown.fast = bot.cooldown.fast.filter(x => x !== message.author.id),
+                bot.cooldown.fast = bot.cooldown.fast
+                    .filter(x => x !== message.author.id),
                 1e3);
         } else {
             if (bot.cooldown.warns.has(message.author.id)) {
-                bot.cooldown.warns.set(message.author.id, bot.cooldown.warns.get(message.author.id) + 1)
+                bot.cooldown.warns.set(
+                    message.author.id,
+                    bot.cooldown.warns.get(message.author.id) + 1)
                 switch (bot.cooldown.warns.get(message.author.id)) {
                     case 3:
                         message.channel.send(`${EMOJIS.WARNINGEMOJI} ${message.author.id} **Si vous continuez de spammer vous serez sanctionné(e) !**`);
@@ -54,15 +58,23 @@ export async function onMessage(message: Message): Promise<void> {
                                 && !m.user.bot
                                 && m.user.presence.status !== "offline"
                                 && m.id !== bot.config.ownerId)
-                            .forEach(m => m.user.send(`${message.author} **(Pseudo: \`${message.author.username}\`, ID: \`${message.author.id}\`) a atteint les 5 warns du système anti-spam !**`).catch(() => { }));
-                        bot.users.cache.get(bot.config.ownerId).send(`${message.author} **(Pseudo: \`${message.author.username}\`, ID: \`${message.author.id}\`) a atteint les 5 warns du système anti-spam !**`).catch(() => { });
+                            .forEach(m =>
+                                sendDM(m, `${message.author} **(Pseudo: \`${message.author.username}\`, ID: \`${message.author.id}\`) a atteint les 5 warns du système anti-spam !**`)
+                                    .catch(() => { }));
+
+                        sendDM(bot.config.ownerId, `${message.author} **(Pseudo: \`${message.author.username}\`, ID: \`${message.author.id}\`) a atteint les 5 warns du système anti-spam !**`)
+                            .catch(() => { });
                         message.channel.send(`${EMOJIS.ADMINSEMOJI} **Un membre du staff a été prévenu.**`);
                         break;
                     case 7:
-                        message.member.roles.add(mutedRole, "[Système anti-spam] Palié 4 atteint, sanction automatique.")
+                        message.member.roles
+                            .add(mutedRole, "[Système anti-spam] Palié 4 atteint, sanction automatique.")
                             .then(() => {
                                 message.channel.send(`${EMOJIS.ADMINSEMOJI} ${message.author} **s'est fait mute pour spam.**`);
-                                setTimeout(() => message.member.roles.remove(mutedRole).catch(() => { }), 1.8e6);
+                                setTimeout(() =>
+                                    message.member.roles.remove(mutedRole)
+                                        .catch(() => { }),
+                                    1.8e6);
                             })
                             .catch(() => { });
                         break;
@@ -81,8 +93,10 @@ export async function onMessage(message: Message): Promise<void> {
         }
     }
 
-    if (message.content.includes('discord.gg/') && !message.member.hasPermission('ADMINISTRATOR')) {
-        message.delete({ reason: 'Comporte une invitation Discord' }).catch(() => { });
+    if (message.content.includes('discord.gg/')
+        && !message.member.hasPermission('ADMINISTRATOR')) {
+        message.delete({ reason: 'Comporte une invitation Discord' })
+            .catch(() => { });
         message.channel.send(`${EMOJIS.ADMINSEMOJI} **Les invitations Discord sont interdites sur le serveur.**`);
         return;
     }
@@ -90,15 +104,20 @@ export async function onMessage(message: Message): Promise<void> {
     Stats.Monthly.inc('messages', { msg: message });
     Stats.Activity.add(message.author, message);
 
-    if (!message.content.toLowerCase().startsWith(bot.prefix)) return; // Si le message ne commence pas par le prefix
+    if (!message.content.toLowerCase().startsWith(bot.prefix)) return;
 
-    const command: string = message.content.split(" ")[0].substring(bot.prefix.length).toLowerCase(); // exemple: p!eval je suis con => command = test
-    const args: string[] = message.content.split(" ").slice(1); // exemple: p!eval je suis con => args = ["je", "suis", "con"]
+    const command: string = message.content
+        .split(" ")[0]
+        .substring(bot.prefix.length)
+        .toLowerCase();
+    const args: string[] = message.content.split(" ").slice(1);
 
     if (bot.commands.has(command) || bot.aliases.has(command)) {
-        const comm: Command = bot.commands.get(command) || bot.aliases.get(command);
+        const comm: Command = bot.commands.get(command)
+            || bot.aliases.get(command);
         message.delete().catch(() => { });
-        comm.execute({ args: args, message: message, bot: this }).catch(() => { });
+        comm.execute({ args: args, message: message, bot: this })
+            .catch(() => { });
     };
 };
 
@@ -136,7 +155,7 @@ export async function onGuildMemberJoin(member: GuildMember): Promise<void> { //
         .forEach((e: [string, string]) =>
             em.addField(`**__${member.guild.member(e[0]).user.username}__**`, emf(e[1]), true)); // e[0] = id, e[1] = émoji
 
-    member.user.send(em)
+    sendDM(member, em)
         .then(async (msg: Message) => {
             const collector: ReactionCollector = msg.createReactionCollector((_, user: User) =>
                 user.id == member.user.id, { time: 3e5 }); // On ne prend que les réactions de l'utilisateur | 3e5 ms = 5 minutes
@@ -193,9 +212,9 @@ export async function onGuildMemberJoin(member: GuildMember): Promise<void> { //
                                 ]
                             }).then(c => {
                                 userCategory = c;
-                                member.user.send(`${EMOJIS.OKEMOJI} **Votre catégorie a été créée. ${EMOJIS.WARNINGEMOJI} Le bot détermine quelle catégorie est la votre grâce aux permissions de celles-ci, merci donc de ne pas les modifier.**`).catch(() => { });
+                                sendDM(member, `${EMOJIS.OKEMOJI} **Votre catégorie a été créée. ${EMOJIS.WARNINGEMOJI} Le bot détermine quelle catégorie est la votre grâce aux permissions de celles-ci, merci donc de ne pas les modifier.**`).catch(() => { });
                             }).catch(e => {
-                                member.user.send(`${EMOJIS.XEMOJI} **Une erreur est survenue...\nEnvoyez une capture d'écran de ce message à** ${bot.users.cache.get(bot.config.ownerId)}:\`\`\`${e}\`\`\``).catch(() => { });
+                                sendDM(member, `${EMOJIS.XEMOJI} **Une erreur est survenue...\nEnvoyez une capture d'écran de ce message à** ${bot.users.cache.get(bot.config.ownerId)}:\`\`\`${e}\`\`\``).catch(() => { });
                                 return;
                             });
 
@@ -211,7 +230,7 @@ export async function onGuildMemberJoin(member: GuildMember): Promise<void> { //
                                     topic: `Salon créé pour ${member}`,
                                     reason: `L'utilisateur ${member.user.username} a choisi ce bot.`,
                                     parent: userCategory // On l'ajoute à la catégorie
-                                }).catch(e => { member.user.send(`${EMOJIS.XEMOJI} **Une erreur est survenue...\nEnvoyez une capture d'écran de ce message à** ${bot.users.cache.get(bot.config.ownerId)}:\`\`\`${e}\`\`\``).catch(() => { }); return; });
+                                }).catch(e => { sendDM(member, `${EMOJIS.XEMOJI} **Une erreur est survenue...\nEnvoyez une capture d'écran de ce message à** ${bot.users.cache.get(bot.config.ownerId)}:\`\`\`${e}\`\`\``).catch(() => { }); return; });
                             };
                         });
                         msgContent = `${EMOJIS.OKEMOJI} **Vos salons ont bien été créés. Si vous ne les voyez pas, merci de contacter un administrateur.**`;
@@ -223,7 +242,7 @@ export async function onGuildMemberJoin(member: GuildMember): Promise<void> { //
                         msgContent = `${EMOJIS.WARNINGEMOJI} **Temps imparti de 5 minutes dépassé.**`;
                 };
 
-                msg.channel.send(msgContent).catch(() => { });
+                sendDM(member, msgContent).catch(() => { });
                 msg.delete().catch(() => { });
             });
         }).catch(() => {
