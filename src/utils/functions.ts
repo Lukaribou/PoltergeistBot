@@ -68,5 +68,5 @@ export function sendDM(u: User | GuildMember | string, msg: any): Promise<Messag
         if (typeof u === 'undefined') rej("Utilisateur non trouvé");
         if (!u.dmChannel) await u.createDM();
         res(await u.dmChannel.send(msg));
-    })
+    });
 }
