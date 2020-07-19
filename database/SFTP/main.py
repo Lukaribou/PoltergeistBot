@@ -13,7 +13,7 @@ def connect():
 
     ssh = paramiko.SSHClient()
     ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
-    ssh.load_host_keys('key.pem')
+    ssh.load_host_keys('./key.pem')
 
     ssh.connect(HOST, username=ID, password=PASSWORD, port=PORT)
     sftp: paramiko.SFTPClient = ssh.open_sftp()
@@ -73,3 +73,4 @@ if __name__ == '__main__':
                 put_in(el, argv[1] == "True")
             else:
                 get_from(el, argv[1] == "True")
+        conn.close()
