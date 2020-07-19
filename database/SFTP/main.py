@@ -1,4 +1,5 @@
 import os
+from sys import argv, exit
 
 conn = None
 
@@ -13,7 +14,7 @@ def connect():
 
     ssh = paramiko.SSHClient()
     ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
-    ssh.load_host_keys('./key.pem')
+    ssh.load_host_keys('key.pem')
 
     ssh.connect(HOST, username=ID, password=PASSWORD, port=PORT)
     sftp: paramiko.SFTPClient = ssh.open_sftp()
@@ -29,6 +30,9 @@ def reverse_string(s: str) -> str:
 def format_name(file_name: str, overwrite: bool, p: bool = False) -> str:
     from os import path
     n = f'../{file_name}'
+
+    if not "." in file_name:  # str.includes
+        exit("Nom de fichier incorrect. Vous avez peut-etre oublie l'extension")
 
     if not overwrite and p and file_name in conn.listdir():
         # p = put_in
@@ -56,16 +60,10 @@ def get_from(file_name: str, overwrite: bool):
 
 
 if __name__ == '__main__':
-    from sys import argv, exit
-
-    def pr_msg():
-        print("python main.py [ecraser (True/False)] [put/get] [fichier]")
-        exit(1)
-
     if len(argv) in [1, 2, 3] \
             or (argv[2] not in ['put', 'get']) \
             or (argv[1] not in ['True', 'False']):
-        pr_msg()
+        exit("python main.py [ecraser (True/False)] [put/get] [fichier]")
     else:
         conn = connect()
         for el in argv[3:]:
