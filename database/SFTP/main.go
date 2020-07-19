@@ -71,7 +71,7 @@ func ask(q string, cI []string) string {
 		fmt.Println(q)
 		sc.Scan()
 		r = strings.ToLower(strings.TrimSpace(sc.Text()))
-		if len(cI) == 0 || arrayContains(cI, r) {
+		if r != "" && r != " " && (len(cI) == 0 || arrayContains(cI, r)) {
 			break
 		}
 	}
