@@ -1,4 +1,5 @@
 import * as https from "https";
+import { addProperty } from "./functions";
 
 const options = {
     hostname: 'quickchart.io',
@@ -114,10 +115,7 @@ export class QuickChart {
      * @param opts Les options
      */
     public setChartOptions(opts: any): QuickChart {
-        Object.defineProperty(this.chart, "options", {
-            enumerable: true,
-            value: opts
-        });
+        addProperty(this.chart, "options", opts);
         return this;
     }
 
@@ -162,7 +160,7 @@ export class QuickChart {
                     .on('end', () => resolve(JSON.parse(data).url))
                     .on('error', (err) => reject(err));
             });
-            req.write(this.getDatas())
+            req.write(this.getDatas());
             req.end();
         });
     }
