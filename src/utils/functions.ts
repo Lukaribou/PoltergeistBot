@@ -78,12 +78,14 @@ export function sendDM(u: User | GuildMember | string, msg: any): Promise<Messag
  * @param val La valeur de la propriété à rajouter
  */
 export function addProperty(o: Object, name: string, val: any): Object {
-    return Object.defineProperty(o, name, {
+    Object.defineProperty(o, name, {
         writable: true,
         enumerable: true,
         configurable: true,
         value: val
     });
+
+    return o;
 }
 
 /**
@@ -95,11 +97,13 @@ export function routeToProperty(o: Object, route: string | string[]): Object {
     if (typeof route === 'string') route = route.split('.');
     var passed = [route[0]];
 
+    o[route[0]] = o[route[0]] || {};
+
     route.slice(1).forEach(k => {
-        let t = eval(`o["${passed.join('"]["')}"]`);
+        let t = eval(`o.${passed.join('.')}`);
         t[k] = typeof t[k] === "object" ? t[k] : {};
         passed.push(k);
     });
-    
+
     return o;
 }
