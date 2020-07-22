@@ -1,5 +1,5 @@
 import * as https from "https";
-import { addProperty } from "./functions";
+import { addProperty, routeToProperty } from "./functions";
 
 const options = {
     hostname: 'quickchart.io',
@@ -75,32 +75,25 @@ export class QuickChart {
 
     /**
      * Change la couleur du texte
-     * Ecrase les options
      * @param clr Couleur du texte
      */
     public setTextColor(clr: string): QuickChart {
-        Object.defineProperty(this.chart, "options", {
-            enumerable: true,
-            value: {
-                legend: {
-                    labels: {
-                        fontColor: clr
-                    }
-                },
-                scales: {
-                    yAxes: [{
-                        ticks: {
-                            fontColor: clr
-                        },
-                    }],
-                    xAxes: [{
-                        ticks: {
-                            fontColor: clr
-                        },
-                    }]
-                }
+        this.chart = routeToProperty(this.chart, 'options.legend.labels');
+        let opts = this.chart.options;
+        opts.legend.labels.fontColor = clr;
+        
+        this.chart = routeToProperty(this.chart, 'options.scales');
+        opts.scales.yAxes = [{
+            ticks: {
+                fontColor: clr
             }
-        });
+        }];
+        opts.scales.xAxes = [{
+            ticks: {
+                fontColor: clr
+            }
+        }];
+
         return this;
     }
 
