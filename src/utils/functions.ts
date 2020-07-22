@@ -64,9 +64,42 @@ export function sendDM(u: User | GuildMember | string, msg: any): Promise<Messag
     return new Promise(async (res, rej) => {
         if (u instanceof GuildMember) u = u.user;
         else if (typeof u === 'string') u = bot.users.cache.get(u);
-        
+
         if (typeof u === 'undefined') rej("Utilisateur non trouvé");
         if (!u.dmChannel) await u.createDM();
         res(await u.dmChannel.send(msg));
     });
+}
+
+/**
+ * Similaire à Object.defineProperty mais avec les options sur true
+ * @param o L'objet
+ * @param name Le nom de la propriété à rajouter
+ * @param val La valeur de la propriété à rajouter
+ */
+export function addProperty(o: Object, name: string, val: any): Object {
+    return Object.defineProperty(o, name, {
+        writable: true,
+        enumerable: true,
+        configurable: true,
+        value: val
+    });
+}
+
+/**
+ * Crée un chemin jusqu'à la propriété demandée
+ * @param o L'objet
+ * @param route Le chemin qui doit être créé
+ */
+export function routeToProperty(o: Object, route: string | string[]): Object {
+    if (typeof route === 'string') route = route.split('.');
+    var passed = [route[0]];
+
+    route.slice(1).forEach(k => {
+        let t = eval(`o["${passed.join('"]["')}"]`);
+        t[k] = typeof t[k] === "object" ? t[k] : {};
+        passed.push(k);
+    });
+    
+    return o;
 }
