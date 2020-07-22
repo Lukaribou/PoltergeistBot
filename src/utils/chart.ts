@@ -1,7 +1,7 @@
 import * as https from "https";
 import { addProperty, routeToProperty } from "./functions";
 
-const options = {
+const postOptions = {
     hostname: 'quickchart.io',
     path: '/chart/create',
     method: 'POST',
@@ -80,6 +80,7 @@ export class QuickChart {
     public setTextColor(clr: string): QuickChart {
         this.chart = routeToProperty(this.chart, 'options.legend.labels');
         let opts = this.chart.options;
+        
         opts.legend.labels.fontColor = clr;
         
         this.chart = routeToProperty(this.chart, 'options.scales');
@@ -147,7 +148,7 @@ export class QuickChart {
      */
     public async requestShortUrl(): Promise<string> {
         return new Promise((resolve, reject) => {
-            const req = https.request(options, (res) => {
+            const req = https.request(postOptions, (res) => {
                 var data = '';
                 res.on('data', (d) => data += d)
                     .on('end', () => resolve(JSON.parse(data).url))
