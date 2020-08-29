@@ -45,4 +45,5 @@ export default class ClearCommand extends Command {
 /**
  * Renvoie true si le message est vieux de plus de deux semaines
  */
-export const isOlder14Days = (message: Message): boolean => <number><unknown>(Date.now() / 8.64e7 - message.createdAt.getTime() / 8.64e7).toFixed(0) > 14;
+export const isOlder14Days = (message: Message): boolean =>
+    <number><unknown>(Date.now() / 8.64e7 - message.createdAt.getTime() / 8.64e7).toFixed(0) > 14;
